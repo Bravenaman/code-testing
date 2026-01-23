@@ -116,11 +116,14 @@ else:
             unsafe_allow_html=True
         )
 
-        if col4.button("✅ Mark as Taken", key=f"taken_{index}"):
+        # FIXED BUTTON STRUCTURE (Streamlit-safe)
+        btn1, btn2 = col4.columns(2)
+
+        if btn1.button("✅ Taken", key=f"taken_{index}"):
             st.session_state.medicines[index]["taken"] = True
             st.rerun()
 
-        if col4.button("❌ Delete", key=f"delete_{index}"):
+        if btn2.button("❌ Delete", key=f"delete_{index}"):
             st.session_state.medicines.pop(index)
             st.rerun()
 
