@@ -1,0 +1,165 @@
+import streamlit as st
+from datetime import datetime, date
+from PIL import Image, ImageDraw
+import pandas as pd
+
+# ---------------------------------
+# Page Configuration
+# ---------------------------------
+st.set_page_config(
+    page_title="MedTimer – Daily Medicine Companion",
+    layout="wide"
+)
+
+st.title("💊 MedTimer – Daily Medicine Companion")
+st.write("A calm and friendly app to help you stay on track with your daily medicines.")
+
+# ---------------------------------
+# Session State Initialization
+# ---------------------------------
+if "medicines" not in st.session_state:
+    st.session_state.medicines = []
+
+# ---------------------------------
+# Helper Functions
+# ---------------------------------
+def get_status(med):
+    now = datetime.now()
+    scheduled_time = datetime.combine(med["date"], med["time"])
+
+    if med["taken"]:
+        return "Taken", "green"
+    elif now < scheduled_time:
+        return "Upcoming", "orange"
+    else:
+        return "Missed", "red"
+
+
+def calculate_adherence():
+    if not st.session_state.medicines:
+        return 0
+
+    taken_count = sum(1 for med in st.session_state.medicines if med["taken"])
+    total = len(st.session_state.medicines)
+
+    return int((taken_count / total) * 100)
+
+
+def draw_reward_image():
+    img = Image.new("RGB", (300, 300), "white")
+    draw = ImageDraw.Draw(img)
+
+    # Face outline
+    draw.ellipse((50, 50, 250, 250), outline="green", width=6)
+
+    # Eyes
+    draw.ellipse((110, 120, 130, 140), fill="black")
+    draw.ellipse((170, 120, 190, 140), fill="black")
+
+    # Smile
+    draw.arc((110, 150, 190, 220), start=0, end=180, fill="green", width=5)
+
+    return img
+
+
+def generate_report():
+    records = []
+
+    for med in st.session_state.medicines:
+        status, _ = get_status(med)
+        records.append({
+            "Medicine Name": med["name"],
+            "Scheduled Time": med["time"].strftime("%H:%M"),
+            "Date": med["date"].strftime("%Y-%m-%d"),
+            "Status": status,
+            "Taken": "Yes" if med["taken"] else "No"
+        })
+
+    return pd.DataFrame(records)
+
+# ---------------------------------
+# Add Medicine Section
+# ---------------------------------
+st.header("➕ Add a Medicine")
+
+with st.form("add_medicine_form"):
+    med_name = st.text_input("Medicine Name")
+    med_time = st.time_input("Scheduled Time")
+    submit = st.form_submit_button("Add Medicine")
+
+    if submit and med_name:
+        st.session_state.medicines.append({
+            "name": med_name,
+            "time": med_time,
+            "taken": False,
+            "date": date.today()
+        })
+        st.success("Medicine added successfully!")
+
+# ---------------------------------
+# Medicine Checklist
+# ---------------------------------
+st.header("📋 Today's Medicine Checklist")
+
+if not st.session_state.medicines:
+    st.info("No medicines added yet. Please add one above.")
+else:
+    for index, med in enumerate(st.session_state.medicines):
+        status, color = get_status(med)
+
+        col1, col2, col3, col4 = st.columns([3, 2, 2, 3])
+
+        col1.write(f"**{med['name']}**")
+        col2.write(med["time"].strftime("%H:%M"))
+        col3.markdown(
+            f"<span style='color:{color}; font-weight:bold'>{status}</span>",
+            unsafe_allow_html=True
+        )
+
+        if col4.button("✅ Mark as Taken", key=f"taken_{index}"):
+            st.session_state.medicines[index]["taken"] = True
+            st.rerun()
+
+        if col4.button("❌ Delete", key=f"delete_{index}"):
+            st.session_state.medicines.pop(index)
+            st.rerun()
+
+# ---------------------------------
+# Adherence Score Section
+# ---------------------------------
+st.header("📊 Weekly Adherence Score")
+
+adherence_score = calculate_adherence()
+st.progress(adherence_score)
+st.write(f"**Adherence Score: {adherence_score}%**")
+
+if adherence_score >= 80:
+    st.success("Great job! You're managing your medicines very well 🌟")
+    st.image(draw_reward_image(), caption="🎉 Keep up the great work!")
+
+    if adherence_score == 100:
+        st.balloons()
+else:
+    st.warning("You're doing okay — try not to miss any doses 💙")
+
+# ---------------------------------
+# Download Report Section
+# ---------------------------------
+st.header("⬇️ Download Medicine Report")
+
+if st.session_state.medicines:
+    report_df = generate_report()
+
+    st.download_button(
+        label="Download CSV Report",
+        data=report_df.to_csv(index=False),
+        file_name="medtimer_report.csv",
+        mime="text/csv"
+    )
+else:
+    st.info("Add medicines to generate a report.")
+
+# ---------------------------------
+# Motivational Tip
+# ---------------------------------
+st.info("💡 Tip: Taking your medicines on time helps maintain good health and peace of mind.")
