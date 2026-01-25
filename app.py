@@ -5,7 +5,7 @@ import pandas as pd
 from PIL import Image, ImageDraw
 
 # -------------------------------------------------
-# Page Config
+# Page config
 # -------------------------------------------------
 st.set_page_config(
     page_title="MedTimer – Daily Medicine Companion",
@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 st.title("💊 MedTimer – Daily Medicine Companion")
-st.write("A friendly app that helps you stay consistent with your daily medicines.")
+st.write("A friendly app to help you stay consistent with your daily medicines.")
 
 # -------------------------------------------------
 # Session State Initialization
@@ -55,7 +55,7 @@ def update_streak():
         st.session_state.streak += 1
     else:
         if st.session_state.streak > 0:
-            st.warning("⚠️ Streak reset. Tomorrow is a fresh start!")
+            st.warning("⚠️ Streak reset. Don’t worry — tomorrow is a fresh start!")
         st.session_state.streak = 0
 
 def check_badges(score):
@@ -64,12 +64,16 @@ def check_badges(score):
 
     if streak >= 1:
         badges.add("🥉 First Step – All medicines taken today")
+
     if streak >= 3:
         badges.add("🥈 3-Day Streak – Consistency is building")
+
     if streak >= 7:
         badges.add("🥇 7-Day Champion – Perfect weekly streak")
+
     if score == 100:
         badges.add("💯 Perfect Day – 100% adherence")
+
     if score >= 90:
         badges.add("🔥 Consistency King – Above 90% adherence")
 
@@ -83,7 +87,7 @@ def draw_reward_image():
     return img
 
 # -------------------------------------------------
-# Sidebar (Tips)
+# Sidebar (Tips & Night Mode Info)
 # -------------------------------------------------
 tips = [
     "💡 Keep medicines near your toothbrush to remember morning doses.",
@@ -94,7 +98,7 @@ tips = [
 
 st.sidebar.header("🌈 Daily Companion")
 st.sidebar.info(random.choice(tips))
-st.sidebar.info("🌙 Switch to Dark Mode from app settings for night use.")
+st.sidebar.info("🌙 You can switch to Dark Mode from app settings at night.")
 
 # -------------------------------------------------
 # Add Medicine
@@ -141,38 +145,27 @@ else:
             st.rerun()
 
 # -------------------------------------------------
-# Progress Overview
+# Adherence, Streak & Badges
 # -------------------------------------------------
 st.header("📊 Progress Overview")
 
 score = calculate_adherence()
 st.progress(score)
-st.write(f"**Adherence Score:** {score}%")
+st.write(f"**Adherence Score: {score}%**")
 
 update_streak()
 check_badges(score)
 
 st.write(f"🔥 **Current Streak:** {st.session_state.streak} day(s)")
 
-# -------------------------------------------------
-# Motivational Tips (FIXED & ALWAYS VISIBLE)
-# -------------------------------------------------
-st.subheader("🌟 Motivational Tips")
-
-if score == 100:
-    st.success("🏆 Perfect day! You didn’t miss a single dose.")
-elif score >= 80:
-    st.success("🌟 Great consistency! Keep it up.")
-elif score >= 50:
-    st.warning("🙂 You’re doing okay. Try to stay consistent.")
-else:
-    st.error("💙 Tough day. Tomorrow is a fresh start.")
-
 if score >= 80:
-    st.image(draw_reward_image(), caption="🎉 Keep going!")
+    st.success("Great consistency! Keep it up 🌟")
+    st.image(draw_reward_image(), caption="🎉 You’re doing great!")
+else:
+    st.warning("Every dose counts. Let’s improve tomorrow 💙")
 
 # -------------------------------------------------
-# Achievements & Badges
+# Achievements
 # -------------------------------------------------
 st.header("🏆 Achievements & Badges")
 
