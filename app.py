@@ -1,221 +1,118 @@
 import streamlit as st
-from datetime import datetime
 import random
-import pandas as pd
-from PIL import Image, ImageDraw
 
-# -------------------------------------------------
-# Page Config
-# -------------------------------------------------
-st.set_page_config(
-    page_title="MedTimer – Daily Medicine Companion",
-    layout="wide"
-)
+st.set_page_config(page_title="CoachBot AI", page_icon="🏆")
 
-st.title("💊 MedTimer – Daily Medicine Companion")
-st.write("A friendly app that helps you stay consistent with your daily medicines.")
+st.title("🏆 CoachBot AI – Virtual Sports Coach")
 
-# -------------------------------------------------
-# Session State
-# -------------------------------------------------
-if "medicines" not in st.session_state:
-    st.session_state.medicines = []
+st.write("Generate personalized training, nutrition and strategy plans.")
 
-if "streak" not in st.session_state:
-    st.session_state.streak = 0
+# -------------------------
+# Athlete Profile
+# -------------------------
+st.header("Athlete Profile")
 
-if "badges" not in st.session_state:
-    st.session_state.badges = set()
+sport = st.selectbox("Select Sport", ["Football", "Basketball", "Cricket", "Tennis"])
+position = st.text_input("Position")
+age_group = st.selectbox("Age Group", ["13-15", "16-18"])
+fitness_level = st.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
+days = st.slider("Training days per week", 1, 7, 3)
+injury = st.selectbox("Injury Risk Area", ["None", "Knee", "Ankle", "Shoulder"])
 
-# -------------------------------------------------
-# Utility Functions
-# -------------------------------------------------
-def get_status(med_time, taken):
-    now = datetime.now().time()
-    if taken:
-        return "Taken"
-    elif now < med_time:
-        return "Upcoming"
-    else:
-        return "Missed"
+st.divider()
 
-def calculate_adherence():
-    if not st.session_state.medicines:
-        return 0
-    taken = sum(1 for m in st.session_state.medicines if m["taken"])
-    return int((taken / len(st.session_state.medicines)) * 100)
+# -------------------------
+# Workout Generator
+# -------------------------
+def generate_workout():
+    warmups = ["5 min jogging", "Jump rope", "Dynamic stretching"]
+    strength = ["Push-ups", "Squats", "Lunges", "Core plank"]
+    cooldown = ["Stretching", "Foam rolling", "Breathing exercises"]
 
-def update_streak():
-    if not st.session_state.medicines:
-        return
-    if all(m["taken"] for m in st.session_state.medicines):
-        st.session_state.streak += 1
-    else:
-        st.session_state.streak = 0
+    sport_drills = {
+        "Football": ["Sprint drills", "Dribbling cones", "Shooting practice"],
+        "Basketball": ["Layup drills", "Ball handling", "3-point shooting"],
+        "Cricket": ["Batting nets", "Bowling practice", "Fielding drills"],
+        "Tennis": ["Serve practice", "Footwork ladder", "Rally drills"]
+    }
 
-def check_badges(score):
-    s = st.session_state.streak
-    b = st.session_state.badges
+    injury_tip = ""
+    if injury != "None":
+        injury_tip = f"⚠ Reduce high impact exercises to protect your {injury.lower()}."
 
-    if s >= 1:
-        b.add("🥉 First Step – All medicines taken today")
-    if s >= 3:
-        b.add("🥈 3-Day Streak – Building consistency")
-    if s >= 7:
-        b.add("🥇 7-Day Champion – Perfect weekly streak")
-    if score == 100:
-        b.add("💯 Perfect Day – 100% adherence")
-    if score >= 90:
-        b.add("🔥 Consistency King – Above 90% adherence")
+    return f"""
+Warm-up: {random.choice(warmups)}
+Strength: {random.choice(strength)}
+Skill Drill: {random.choice(sport_drills[sport])}
+Cooldown: {random.choice(cooldown)}
 
-def draw_reward_image():
-    img = Image.new("RGB", (250, 250), "white")
-    d = ImageDraw.Draw(img)
-    d.ellipse((40, 40, 210, 210), outline="green", width=6)
-    d.ellipse((90, 100, 110, 120), fill="black")
-    d.ellipse((140, 100, 160, 120), fill="black")
-    d.arc((90, 130, 160, 190), 0, 180, fill="green", width=5)
-    return img
+{injury_tip}
+"""
 
-# -------------------------------------------------
-# Sidebar
-# -------------------------------------------------
-st.sidebar.header("🌈 Daily Companion")
-st.sidebar.info("💡 Stay consistent. Small habits protect long-term health.")
-st.sidebar.info("🌙 Dark mode can be enabled from Streamlit settings.")
+# -------------------------
+# Weekly Plan Generator
+# -------------------------
+def generate_schedule():
+    days_list = ["Speed & Agility", "Strength", "Skill Training", "Match Simulation", "Recovery"]
+    plan = ""
+    for i in range(days):
+        plan += f"Day {i+1}: {random.choice(days_list)}\n"
+    return plan
 
-# -------------------------------------------------
-# Add Medicine
-# -------------------------------------------------
-st.header("➕ Add Medicine")
+# -------------------------
+# Nutrition Generator
+# -------------------------
+def nutrition_tips():
+    tips = [
+        "Eat protein after training for muscle recovery.",
+        "Drink at least 2–3 litres of water daily.",
+        "Include fruits before training for energy.",
+        "Eat carbs before matches for stamina.",
+        "Avoid junk food before training."
+    ]
+    return "\n".join(random.sample(tips, 3))
 
-with st.form("medicine_form"):
-    name = st.text_input("Medicine Name")
-    time = st.time_input("Scheduled Time")
-    submit = st.form_submit_button("Add Medicine")
+# -------------------------
+# Motivation Generator
+# -------------------------
+def motivation():
+    quotes = [
+        "Consistency beats talent.",
+        "Train hard, play easy.",
+        "Small progress every day.",
+        "Discipline creates champions.",
+        "Push past your limits."
+    ]
+    return random.choice(quotes)
 
-    if submit and name:
-        st.session_state.medicines.append({
-            "name": name,
-            "time": time,
-            "taken": False
-        })
-        st.success("Medicine added successfully!")
+# -------------------------
+# Game Strategy Generator
+# -------------------------
+def strategy():
+    opponent = st.selectbox("Opponent Strength", ["Weak", "Average", "Strong"])
+    if opponent == "Weak":
+        return "Play aggressively and practice new tactics."
+    if opponent == "Average":
+        return "Maintain balance between attack and defense."
+    if opponent == "Strong":
+        return "Focus on defense and counter attacks."
 
-# -------------------------------------------------
-# Medicine Checklist
-# -------------------------------------------------
-st.header("📋 Today’s Medicine Checklist")
+# -------------------------
+# Buttons
+# -------------------------
+st.header("Generate Plans")
 
-if not st.session_state.medicines:
-    st.info("No medicines added yet.")
-else:
-    for i, med in enumerate(st.session_state.medicines):
-        c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
-        c1.write(f"**{med['name']}**")
-        c2.write(med["time"].strftime("%H:%M"))
+if st.button("Generate Workout"):
+    st.success(generate_workout())
 
-        status = get_status(med["time"], med["taken"])
+if st.button("Generate Weekly Schedule"):
+    st.info(generate_schedule())
 
-        if status == "Taken":
-            c3.success("🟢 Taken")
-        elif status == "Upcoming":
-            c3.warning("🟡 Upcoming")
-        else:
-            c3.error("🔴 Missed")
+if st.button("Nutrition Tips"):
+    st.warning(nutrition_tips())
 
-        if c4.button("Mark as Taken", key=f"take_{i}"):
-            st.session_state.medicines[i]["taken"] = True
-            st.rerun()
+if st.button("Motivate Me"):
+    st.success(motivation())
 
-# -------------------------------------------------
-# Progress Overview
-# -------------------------------------------------
-st.header("📊 Progress Overview")
-
-score = calculate_adherence()
-st.progress(score)
-st.write(f"**Adherence Score:** {score}%")
-
-update_streak()
-check_badges(score)
-
-st.write(f"🔥 **Current Streak:** {st.session_state.streak} day(s)")
-
-# -------------------------------------------------
-# 🌟 Motivational Tips (ALWAYS VISIBLE – FINAL FIX)
-# -------------------------------------------------
-st.subheader("🌟 Motivational Tips")
-
-motivational_lines = [
-    "💙 Small habits done daily lead to big health wins.",
-    "⏰ Medicines work best when taken on time.",
-    "🌱 Consistency today protects your future self.",
-    "💪 You’re stronger than your excuses — keep going!",
-    "🧠 Health is a routine, not a one-time decision."
-]
-
-# Always visible motivation
-st.info(random.choice(motivational_lines))
-
-# Performance-based feedback
-if not st.session_state.medicines:
-    st.warning("➕ Add your medicines to begin your health journey.")
-elif score == 100:
-    st.success("🏆 Perfect day! You didn’t miss a single dose.")
-elif score >= 80:
-    st.success("🌟 Great consistency! Keep it up.")
-elif score >= 50:
-    st.warning("🙂 You’re halfway there. Stay focused.")
-else:
-    st.error("💙 Missed doses happen. Tomorrow is a fresh start.")
-
-if score >= 80 and st.session_state.medicines:
-    st.image(draw_reward_image(), caption="🎉 Keep going!")
-
-# -------------------------------------------------
-# Achievements & Badges
-# -------------------------------------------------
-st.header("🏆 Achievements & Badges")
-
-if st.session_state.badges:
-    for badge in st.session_state.badges:
-        st.success(badge)
-else:
-    st.info("No badges yet. Consistency unlocks rewards!")
-
-if st.session_state.streak == 7:
-    st.balloons()
-
-# -------------------------------------------------
-# Feedback
-# -------------------------------------------------
-st.header("📝 User Feedback")
-
-with st.form("feedback_form"):
-    feedback = st.text_area("Share your experience with MedTimer")
-    send = st.form_submit_button("Submit Feedback")
-
-    if send and feedback:
-        st.success("Thank you for your feedback! 💙")
-
-# -------------------------------------------------
-# Download Report
-# -------------------------------------------------
-st.header("⬇️ Download Medicine Report")
-
-if st.session_state.medicines:
-    df = pd.DataFrame([
-        {
-            "Medicine": m["name"],
-            "Time": m["time"].strftime("%H:%M"),
-            "Taken": "Yes" if m["taken"] else "No"
-        } for m in st.session_state.medicines
-    ])
-
-    st.download_button(
-        "Download CSV Report",
-        df.to_csv(index=False),
-        "medtimer_report.csv",
-        "text/csv"
-    )
+st.subheader("Game Day Strategy")
+st.write(strategy())
