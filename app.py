@@ -12,7 +12,7 @@ st.write("Generate personalized training, nutrition and strategy plans.")
 st.header("Athlete Profile")
 
 sport = st.selectbox("Select Sport", ["Football", "Basketball", "Cricket", "Tennis"])
-position = st.text_input("Position")
+position = st.text_input("Position (example: defender, striker, goalkeeper)")
 age_group = st.selectbox("Age Group", ["13-15", "16-18"])
 fitness_level = st.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
 days = st.slider("Training days per week", 1, 7, 3)
@@ -21,64 +21,125 @@ injury = st.selectbox("Injury Risk Area", ["None", "Knee", "Ankle", "Shoulder"])
 st.divider()
 
 # -------------------------
-# NEW Sport-Specific Workout Generator
+# Sport + Position Workout Generator
 # -------------------------
 def generate_workout():
 
     workouts = {
 
         "Football": {
-            "warmup": ["Light jogging", "High knees", "Dynamic leg swings"],
-            "strength": ["Squats", "Lunges", "Core plank", "Calf raises"],
-            "skills": ["Sprint intervals", "Dribbling cone drills", "Shooting practice"],
-            "cooldown": ["Hamstring stretch", "Quad stretch", "Foam rolling"]
+            "attacker": {
+                "strength": ["Jump squats", "Lunges", "Core plank"],
+                "skills": ["Shooting practice", "Dribbling cones", "Finishing drills"]
+            },
+            "midfielder": {
+                "strength": ["Squats", "Core plank", "Endurance running"],
+                "skills": ["Passing drills", "Ball control", "Vision drills"]
+            },
+            "defender": {
+                "strength": ["Heavy squats", "Lunges", "Core stability"],
+                "skills": ["Tackling drills", "Marking practice", "Heading practice"]
+            },
+            "goalkeeper": {
+                "strength": ["Core plank", "Medicine ball throws", "Jump squats"],
+                "skills": ["Diving drills", "Reaction training", "Catching drills"]
+            }
         },
 
         "Basketball": {
-            "warmup": ["Skipping rope", "Arm circles", "Dynamic stretches"],
-            "strength": ["Jump squats", "Push-ups", "Core twists", "Box jumps"],
-            "skills": ["Layup drills", "Ball handling drills", "3-point shooting"],
-            "cooldown": ["Shoulder stretch", "Hip stretch", "Breathing exercises"]
+            "default": {
+                "strength": ["Box jumps", "Push-ups", "Core twists"],
+                "skills": ["Layups", "Dribbling drills", "3-point shooting"]
+            }
         },
 
         "Cricket": {
-            "warmup": ["Jogging laps", "Shoulder rotations", "Dynamic stretches"],
-            "strength": ["Resistance band training", "Core plank", "Lunges", "Push-ups"],
-            "skills": ["Batting nets", "Bowling accuracy drills", "Fielding practice"],
-            "cooldown": ["Shoulder stretch", "Hamstring stretch", "Light walking"]
+            "default": {
+                "strength": ["Resistance band training", "Core plank", "Lunges"],
+                "skills": ["Batting nets", "Bowling practice", "Fielding drills"]
+            }
         },
 
         "Tennis": {
-            "warmup": ["Skipping rope", "Side shuffles", "Dynamic stretches"],
-            "strength": ["Core plank", "Lunges", "Medicine ball throws", "Squats"],
-            "skills": ["Serve practice", "Footwork ladder", "Rally drills"],
-            "cooldown": ["Forearm stretch", "Leg stretch", "Deep breathing"]
+            "default": {
+                "strength": ["Lunges", "Squats", "Core plank"],
+                "skills": ["Serve practice", "Footwork ladder", "Rally drills"]
+            }
         }
     }
 
-    sport_plan = workouts[sport]
+    warmups = ["Light jogging", "Skipping rope", "Dynamic stretching"]
+    cooldowns = ["Stretching", "Foam rolling", "Breathing exercises"]
+
+    pos = position.lower()
+
+    if sport == "Football":
+        if "def" in pos:
+            role = "defender"
+        elif "mid" in pos:
+            role = "midfielder"
+        elif "goal" in pos:
+            role = "goalkeeper"
+        else:
+            role = "attacker"
+    else:
+        role = "default"
+
+    sport_plan = workouts[sport][role]
 
     injury_tip = ""
     if injury != "None":
         injury_tip = f"⚠ Reduce high-impact drills to protect your {injury.lower()}."
 
     return f"""
-Warm-up: {random.choice(sport_plan['warmup'])}
-Strength: {random.choice(sport_plan['strength'])}
+Warm-up: {random.choice(warmups)}
+Strength Focus: {random.choice(sport_plan['strength'])}
 Skill Drill: {random.choice(sport_plan['skills'])}
-Cooldown: {random.choice(sport_plan['cooldown'])}
+Cooldown: {random.choice(cooldowns)}
 
 {injury_tip}
 """
 
 # -------------------------
-# Weekly Schedule Generator
+# Sport-Specific Weekly Schedule
 # -------------------------
 def generate_schedule():
-    days_list = ["Speed & Agility", "Strength", "Skill Training", "Match Simulation", "Recovery"]
+
+    schedules = {
+        "Football": [
+            "Speed & Sprint Training",
+            "Strength & Conditioning",
+            "Ball Control & Passing",
+            "Match Simulation",
+            "Recovery & Mobility"
+        ],
+        "Basketball": [
+            "Vertical Jump Training",
+            "Ball Handling",
+            "Strength Training",
+            "Shooting Practice",
+            "Recovery & Stretching"
+        ],
+        "Cricket": [
+            "Batting Practice",
+            "Bowling & Shoulder Strength",
+            "Fielding Drills",
+            "Endurance Training",
+            "Recovery Session"
+        ],
+        "Tennis": [
+            "Footwork & Agility",
+            "Serve Practice",
+            "Strength Training",
+            "Match Simulation",
+            "Mobility & Stretching"
+        ]
+    }
+
+    chosen = schedules[sport]
     plan = ""
     for i in range(days):
-        plan += f"Day {i+1}: {random.choice(days_list)}\n"
+        plan += f"Day {i+1}: {random.choice(chosen)}\n"
     return plan
 
 # -------------------------
