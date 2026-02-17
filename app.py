@@ -4,7 +4,6 @@ import random
 st.set_page_config(page_title="CoachBot AI", page_icon="🏆")
 
 st.title("🏆 CoachBot AI – Virtual Sports Coach")
-
 st.write("Generate personalized training, nutrition and strategy plans.")
 
 # -------------------------
@@ -22,35 +21,58 @@ injury = st.selectbox("Injury Risk Area", ["None", "Knee", "Ankle", "Shoulder"])
 st.divider()
 
 # -------------------------
-# Workout Generator
+# NEW Sport-Specific Workout Generator
 # -------------------------
 def generate_workout():
-    warmups = ["5 min jogging", "Jump rope", "Dynamic stretching"]
-    strength = ["Push-ups", "Squats", "Lunges", "Core plank"]
-    cooldown = ["Stretching", "Foam rolling", "Breathing exercises"]
 
-    sport_drills = {
-        "Football": ["Sprint drills", "Dribbling cones", "Shooting practice"],
-        "Basketball": ["Layup drills", "Ball handling", "3-point shooting"],
-        "Cricket": ["Batting nets", "Bowling practice", "Fielding drills"],
-        "Tennis": ["Serve practice", "Footwork ladder", "Rally drills"]
+    workouts = {
+
+        "Football": {
+            "warmup": ["Light jogging", "High knees", "Dynamic leg swings"],
+            "strength": ["Squats", "Lunges", "Core plank", "Calf raises"],
+            "skills": ["Sprint intervals", "Dribbling cone drills", "Shooting practice"],
+            "cooldown": ["Hamstring stretch", "Quad stretch", "Foam rolling"]
+        },
+
+        "Basketball": {
+            "warmup": ["Skipping rope", "Arm circles", "Dynamic stretches"],
+            "strength": ["Jump squats", "Push-ups", "Core twists", "Box jumps"],
+            "skills": ["Layup drills", "Ball handling drills", "3-point shooting"],
+            "cooldown": ["Shoulder stretch", "Hip stretch", "Breathing exercises"]
+        },
+
+        "Cricket": {
+            "warmup": ["Jogging laps", "Shoulder rotations", "Dynamic stretches"],
+            "strength": ["Resistance band training", "Core plank", "Lunges", "Push-ups"],
+            "skills": ["Batting nets", "Bowling accuracy drills", "Fielding practice"],
+            "cooldown": ["Shoulder stretch", "Hamstring stretch", "Light walking"]
+        },
+
+        "Tennis": {
+            "warmup": ["Skipping rope", "Side shuffles", "Dynamic stretches"],
+            "strength": ["Core plank", "Lunges", "Medicine ball throws", "Squats"],
+            "skills": ["Serve practice", "Footwork ladder", "Rally drills"],
+            "cooldown": ["Forearm stretch", "Leg stretch", "Deep breathing"]
+        }
     }
+
+    sport_plan = workouts[sport]
 
     injury_tip = ""
     if injury != "None":
-        injury_tip = f"⚠ Reduce high impact exercises to protect your {injury.lower()}."
+        injury_tip = f"⚠ Reduce high-impact drills to protect your {injury.lower()}."
 
     return f"""
-Warm-up: {random.choice(warmups)}
-Strength: {random.choice(strength)}
-Skill Drill: {random.choice(sport_drills[sport])}
-Cooldown: {random.choice(cooldown)}
+Warm-up: {random.choice(sport_plan['warmup'])}
+Strength: {random.choice(sport_plan['strength'])}
+Skill Drill: {random.choice(sport_plan['skills'])}
+Cooldown: {random.choice(sport_plan['cooldown'])}
 
 {injury_tip}
 """
 
 # -------------------------
-# Weekly Plan Generator
+# Weekly Schedule Generator
 # -------------------------
 def generate_schedule():
     days_list = ["Speed & Agility", "Strength", "Skill Training", "Match Simulation", "Recovery"]
@@ -88,10 +110,9 @@ def motivation():
 # -------------------------
 # Game Strategy Generator
 # -------------------------
-def strategy():
-    opponent = st.selectbox("Opponent Strength", ["Weak", "Average", "Strong"])
+def strategy(opponent):
     if opponent == "Weak":
-        return "Play aggressively and practice new tactics."
+        return "Play aggressively and experiment with new tactics."
     if opponent == "Average":
         return "Maintain balance between attack and defense."
     if opponent == "Strong":
@@ -115,4 +136,5 @@ if st.button("Motivate Me"):
     st.success(motivation())
 
 st.subheader("Game Day Strategy")
-st.write(strategy())
+opponent = st.selectbox("Opponent Strength", ["Weak", "Average", "Strong"])
+st.write(strategy(opponent))
