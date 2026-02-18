@@ -12,7 +12,17 @@ st.write("Generate personalized training, nutrition and strategy plans.")
 st.header("Athlete Profile")
 
 sport = st.selectbox("Select Sport", ["Football", "Basketball", "Cricket", "Tennis"])
-position = st.text_input("Position (example: defender, striker, goalkeeper)")
+
+# Dynamic position dropdown
+positions = {
+    "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper"],
+    "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+    "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper", "Fielder"],
+    "Tennis": ["Singles Player", "Doubles Player", "Baseline Player", "Serve-and-Volley Player"]
+}
+
+position = st.selectbox("Select Position", positions[sport])
+
 age_group = st.selectbox("Age Group", ["13-15", "16-18"])
 fitness_level = st.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
 days = st.slider("Training days per week", 1, 7, 3)
@@ -71,17 +81,15 @@ def generate_workout():
     warmups = ["Light jogging", "Skipping rope", "Dynamic stretching"]
     cooldowns = ["Stretching", "Foam rolling", "Breathing exercises"]
 
-    pos = position.lower()
-
+    # Map dropdown position to football roles
     if sport == "Football":
-        if "def" in pos:
-            role = "defender"
-        elif "mid" in pos:
-            role = "midfielder"
-        elif "goal" in pos:
-            role = "goalkeeper"
-        else:
-            role = "attacker"
+        role_map = {
+            "Striker": "attacker",
+            "Midfielder": "midfielder",
+            "Defender": "defender",
+            "Goalkeeper": "goalkeeper"
+        }
+        role = role_map[position]
     else:
         role = "default"
 
