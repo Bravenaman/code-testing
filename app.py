@@ -13,7 +13,6 @@ st.header("Athlete Profile")
 
 sport = st.selectbox("Select Sport", ["Football", "Basketball", "Cricket", "Tennis"])
 
-# Dynamic position dropdown
 positions = {
     "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper"],
     "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
@@ -26,12 +25,27 @@ position = st.selectbox("Select Position", positions[sport])
 age_group = st.selectbox("Age Group", ["13-15", "16-18"])
 fitness_level = st.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
 days = st.slider("Training days per week", 1, 7, 3)
-injury = st.selectbox("Injury Risk Area", ["None", "Knee", "Ankle", "Shoulder"])
+
+injury = st.selectbox(
+    "Injury Risk Area",
+    [
+        "None",
+        "Knee",
+        "Ankle",
+        "Shoulder",
+        "Hamstring",
+        "Groin",
+        "Lower Back",
+        "Wrist / Forearm",
+        "Shin Splints",
+        "Achilles"
+    ]
+)
 
 st.divider()
 
 # -------------------------
-# Sport + Position Workout Generator
+# Workout Generator
 # -------------------------
 def generate_workout():
 
@@ -81,7 +95,6 @@ def generate_workout():
     warmups = ["Light jogging", "Skipping rope", "Dynamic stretching"]
     cooldowns = ["Stretching", "Foam rolling", "Breathing exercises"]
 
-    # Map dropdown position to football roles
     if sport == "Football":
         role_map = {
             "Striker": "attacker",
@@ -95,9 +108,21 @@ def generate_workout():
 
     sport_plan = workouts[sport][role]
 
+    injury_tips = {
+        "Knee": "Avoid excessive jumping and sudden direction changes.",
+        "Ankle": "Limit sprinting and add balance exercises.",
+        "Shoulder": "Reduce overhead and throwing intensity.",
+        "Hamstring": "Avoid explosive sprinting and add stretching.",
+        "Groin": "Reduce lateral movements and add mobility work.",
+        "Lower Back": "Focus on core stability and avoid heavy lifting.",
+        "Wrist / Forearm": "Limit repetitive impact and add mobility.",
+        "Shin Splints": "Reduce running volume and add recovery days.",
+        "Achilles": "Avoid excessive jumping and sprinting."
+    }
+
     injury_tip = ""
     if injury != "None":
-        injury_tip = f"⚠ Reduce high-impact drills to protect your {injury.lower()}."
+        injury_tip = "⚠ Injury Advice: " + injury_tips[injury]
 
     return f"""
 Warm-up: {random.choice(warmups)}
@@ -109,7 +134,7 @@ Cooldown: {random.choice(cooldowns)}
 """
 
 # -------------------------
-# Sport-Specific Weekly Schedule
+# Weekly Schedule
 # -------------------------
 def generate_schedule():
 
