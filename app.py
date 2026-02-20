@@ -1,234 +1,173 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="CoachBot AI", page_icon="🏆")
+# -------------------------------
+# PAGE CONFIG
+# -------------------------------
+st.set_page_config(page_title="CoachBot AI", page_icon="🏆", layout="wide")
 
-st.title("🏆 CoachBot AI – Virtual Sports Coach")
-st.write("Generate personalized training, nutrition and strategy plans.")
+st.title("🏆 CoachBot AI – Virtual Sports Performance System")
+st.markdown("Your intelligent sports training assistant for young athletes.")
 
-# -------------------------
-# Athlete Profile
-# -------------------------
-st.header("Athlete Profile")
+# -------------------------------
+# SIDEBAR – ATHLETE PROFILE
+# -------------------------------
+st.sidebar.header("Athlete Profile")
 
-sport = st.selectbox("Select Sport", ["Football", "Basketball", "Cricket", "Tennis"])
+sport = st.sidebar.selectbox(
+    "Select Sport",
+    ["Football", "Basketball", "Cricket", "Tennis"]
+)
 
-positions = {
+positions_dict = {
     "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper"],
     "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
     "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper", "Fielder"],
     "Tennis": ["Singles Player", "Doubles Player", "Baseline Player", "Serve-and-Volley Player"]
 }
 
-position = st.selectbox("Select Position", positions[sport])
+position = st.sidebar.selectbox("Position", positions_dict[sport])
+age_group = st.sidebar.selectbox("Age Group", ["13–15", "16–18"])
+fitness_level = st.sidebar.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
+training_days = st.sidebar.slider("Training Days Per Week", 1, 7, 3)
 
-age_group = st.selectbox("Age Group", ["13-15", "16-18"])
-fitness_level = st.selectbox("Fitness Level", ["Beginner", "Intermediate", "Advanced"])
-days = st.slider("Training days per week", 1, 7, 3)
-
-injury = st.selectbox(
-    "Injury Risk Area",
-    [
-        "None",
-        "Knee",
-        "Ankle",
-        "Shoulder",
-        "Hamstring",
-        "Groin",
-        "Lower Back",
-        "Wrist / Forearm",
-        "Shin Splints",
-        "Achilles"
-    ]
+# -------------------------------
+# TABS
+# -------------------------------
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["🏋️ Training Plan", "⚠️ Injury Assessment", "🧘 Recovery System", "🎯 Match Strategy"]
 )
 
-st.divider()
+# =====================================================
+# TAB 1 – TRAINING PLAN
+# =====================================================
+with tab1:
+    st.header("Personalized Weekly Training Plan")
 
-# -------------------------
-# Workout Generator
-# -------------------------
-def generate_workout():
-
-    workouts = {
-
-        "Football": {
-            "attacker": {
-                "strength": ["Jump squats", "Lunges", "Core plank"],
-                "skills": ["Shooting practice", "Dribbling cones", "Finishing drills"]
-            },
-            "midfielder": {
-                "strength": ["Squats", "Core plank", "Endurance running"],
-                "skills": ["Passing drills", "Ball control", "Vision drills"]
-            },
-            "defender": {
-                "strength": ["Heavy squats", "Lunges", "Core stability"],
-                "skills": ["Tackling drills", "Marking practice", "Heading practice"]
-            },
-            "goalkeeper": {
-                "strength": ["Core plank", "Medicine ball throws", "Jump squats"],
-                "skills": ["Diving drills", "Reaction training", "Catching drills"]
-            }
-        },
-
-        "Basketball": {
-            "default": {
-                "strength": ["Box jumps", "Push-ups", "Core twists"],
-                "skills": ["Layups", "Dribbling drills", "3-point shooting"]
-            }
-        },
-
-        "Cricket": {
-            "default": {
-                "strength": ["Resistance band training", "Core plank", "Lunges"],
-                "skills": ["Batting nets", "Bowling practice", "Fielding drills"]
-            }
-        },
-
-        "Tennis": {
-            "default": {
-                "strength": ["Lunges", "Squats", "Core plank"],
-                "skills": ["Serve practice", "Footwork ladder", "Rally drills"]
-            }
+    if st.button("Generate Full Training Plan"):
+        football_position_workouts = {
+            "Striker": "Finishing drills, explosive sprint training, shooting accuracy circuits",
+            "Midfielder": "Endurance runs, passing drills, vision & ball control sessions",
+            "Defender": "Strength training, tackling drills, positional awareness practice",
+            "Goalkeeper": "Reaction drills, diving technique, reflex & agility work"
         }
-    }
 
-    warmups = ["Light jogging", "Skipping rope", "Dynamic stretching"]
-    cooldowns = ["Stretching", "Foam rolling", "Breathing exercises"]
-
-    if sport == "Football":
-        role_map = {
-            "Striker": "attacker",
-            "Midfielder": "midfielder",
-            "Defender": "defender",
-            "Goalkeeper": "goalkeeper"
+        general_workouts = {
+            "Basketball": "Ball handling, vertical jump training, shooting under pressure",
+            "Cricket": "Net practice, strength conditioning, match simulation drills",
+            "Tennis": "Serve accuracy, lateral movement drills, match endurance sets"
         }
-        role = role_map[position]
-    else:
-        role = "default"
 
-    sport_plan = workouts[sport][role]
+        weekly_days = {
+            "Football": ["Speed Training", "Strength & Conditioning", "Ball Control", "Match Simulation", "Recovery Session"],
+            "Basketball": ["Dribbling Skills", "Shooting Practice", "Defensive Drills", "Scrimmage Game", "Agility Training"],
+            "Cricket": ["Batting Nets", "Bowling Accuracy", "Fielding Drills", "Strength Training", "Match Practice"],
+            "Tennis": ["Serve Practice", "Baseline Rally", "Net Play", "Footwork Drills", "Endurance Match"]
+        }
 
-    injury_tips = {
-        "Knee": "Avoid excessive jumping and sudden direction changes.",
-        "Ankle": "Limit sprinting and add balance exercises.",
-        "Shoulder": "Reduce overhead and throwing intensity.",
-        "Hamstring": "Avoid explosive sprinting and add stretching.",
-        "Groin": "Reduce lateral movements and add mobility work.",
-        "Lower Back": "Focus on core stability and avoid heavy lifting.",
-        "Wrist / Forearm": "Limit repetitive impact and add mobility.",
-        "Shin Splints": "Reduce running volume and add recovery days.",
-        "Achilles": "Avoid excessive jumping and sprinting."
-    }
+        st.subheader("Core Focus")
 
-    injury_tip = ""
-    if injury != "None":
-        injury_tip = "⚠ Injury Advice: " + injury_tips[injury]
+        if sport == "Football":
+            st.success(football_position_workouts[position])
+        else:
+            st.success(general_workouts[sport])
 
-    return f"""
-Warm-up: {random.choice(warmups)}
-Strength Focus: {random.choice(sport_plan['strength'])}
-Skill Drill: {random.choice(sport_plan['skills'])}
-Cooldown: {random.choice(cooldowns)}
+        st.subheader("Weekly Structure")
 
-{injury_tip}
-"""
+        selected_days = random.sample(weekly_days[sport], min(training_days, len(weekly_days[sport])))
+        for day in selected_days:
+            st.write(f"• {day}")
 
-# -------------------------
-# Weekly Schedule
-# -------------------------
-def generate_schedule():
+# =====================================================
+# TAB 2 – INJURY ASSESSMENT
+# =====================================================
+with tab2:
+    st.header("Injury Risk Analysis")
 
-    schedules = {
-        "Football": [
-            "Speed & Sprint Training",
-            "Strength & Conditioning",
-            "Ball Control & Passing",
-            "Match Simulation",
-            "Recovery & Mobility"
-        ],
-        "Basketball": [
-            "Vertical Jump Training",
-            "Ball Handling",
-            "Strength Training",
-            "Shooting Practice",
-            "Recovery & Stretching"
-        ],
-        "Cricket": [
-            "Batting Practice",
-            "Bowling & Shoulder Strength",
-            "Fielding Drills",
-            "Endurance Training",
-            "Recovery Session"
-        ],
-        "Tennis": [
-            "Footwork & Agility",
-            "Serve Practice",
-            "Strength Training",
-            "Match Simulation",
-            "Mobility & Stretching"
-        ]
-    }
+    pain_area = st.selectbox(
+        "Pain Area",
+        ["None", "Knee", "Ankle", "Shoulder", "Hamstring", "Groin", "Lower Back", "Wrist / Forearm", "Shin Splints", "Achilles"]
+    )
 
-    chosen = schedules[sport]
-    plan = ""
-    for i in range(days):
-        plan += f"Day {i+1}: {random.choice(chosen)}\n"
-    return plan
+    pain_level = st.slider("Pain Level (1–10)", 1, 10, 3)
+    training_load = st.slider("Weekly Training Intensity (1–10)", 1, 10, 5)
+    previous_injury = st.selectbox("Previous Injury?", ["No", "Yes"])
 
-# -------------------------
-# Nutrition Generator
-# -------------------------
-def nutrition_tips():
-    tips = [
-        "Eat protein after training for muscle recovery.",
-        "Drink at least 2–3 litres of water daily.",
-        "Include fruits before training for energy.",
-        "Eat carbs before matches for stamina.",
-        "Avoid junk food before training."
-    ]
-    return "\n".join(random.sample(tips, 3))
+    if st.button("Assess Risk"):
+        risk_score = pain_level + training_load
+        if previous_injury == "Yes":
+            risk_score += 3
 
-# -------------------------
-# Motivation Generator
-# -------------------------
-def motivation():
-    quotes = [
-        "Consistency beats talent.",
-        "Train hard, play easy.",
-        "Small progress every day.",
-        "Discipline creates champions.",
-        "Push past your limits."
-    ]
-    return random.choice(quotes)
+        if risk_score < 8:
+            risk_status = "Low Risk"
+        elif risk_score < 14:
+            risk_status = "Moderate Risk"
+        else:
+            risk_status = "High Risk"
 
-# -------------------------
-# Game Strategy Generator
-# -------------------------
-def strategy(opponent):
-    if opponent == "Weak":
-        return "Play aggressively and experiment with new tactics."
-    if opponent == "Average":
-        return "Maintain balance between attack and defense."
-    if opponent == "Strong":
-        return "Focus on defense and counter attacks."
+        st.subheader("Risk Evaluation")
+        st.warning(f"Status: {risk_status}")
 
-# -------------------------
-# Buttons
-# -------------------------
-st.header("Generate Plans")
+        advice = {
+            "Knee": "Reduce jumping and sharp direction changes.",
+            "Ankle": "Limit sprinting and add balance work.",
+            "Shoulder": "Avoid overhead loading exercises.",
+            "Hamstring": "Focus on controlled stretching and avoid max sprints.",
+            "Groin": "Reduce lateral explosive movements.",
+            "Lower Back": "Avoid heavy spinal loading.",
+            "Wrist / Forearm": "Reduce repetitive impact drills.",
+            "Shin Splints": "Lower running volume temporarily.",
+            "Achilles": "Avoid explosive take-offs."
+        }
 
-if st.button("Generate Workout"):
-    st.success(generate_workout())
+        if pain_area != "None":
+            st.info(advice[pain_area])
 
-if st.button("Generate Weekly Schedule"):
-    st.info(generate_schedule())
+# =====================================================
+# TAB 3 – RECOVERY SYSTEM
+# =====================================================
+with tab3:
+    st.header("Recovery & Regeneration")
 
-if st.button("Nutrition Tips"):
-    st.warning(nutrition_tips())
+    if st.button("Generate Recovery Plan"):
+        recovery_protocols = {
+            "Football": "Ice bath (10 min), light jog cooldown, hamstring stretch routine.",
+            "Basketball": "Foam rolling, quad & calf stretches, hydration focus.",
+            "Cricket": "Shoulder mobility routine, light cardio recovery, hydration.",
+            "Tennis": "Forearm stretching, hip mobility work, protein intake post-session."
+        }
 
-if st.button("Motivate Me"):
-    st.success(motivation())
+        st.subheader("Recovery Protocol")
+        st.success(recovery_protocols[sport])
 
-st.subheader("Game Day Strategy")
-opponent = st.selectbox("Opponent Strength", ["Weak", "Average", "Strong"])
-st.write(strategy(opponent))
+        st.subheader("Sleep Recommendation")
+        if age_group == "13–15":
+            st.write("8–10 hours per night recommended.")
+        else:
+            st.write("8–9 hours per night recommended.")
+
+        st.subheader("Hydration Target")
+        st.write("2–3 Liters daily (increase on intense training days).")
+
+# =====================================================
+# TAB 4 – MATCH STRATEGY
+# =====================================================
+with tab4:
+    st.header("Game Strategy Generator")
+
+    opponent_strength = st.selectbox("Opponent Strength", ["Weak", "Average", "Strong"])
+
+    if st.button("Generate Strategy"):
+        if opponent_strength == "Weak":
+            strategy = "Play aggressively. Press high and control possession."
+        elif opponent_strength == "Average":
+            strategy = "Balanced play. Maintain structure and exploit gaps."
+        else:
+            strategy = "Defensive setup with counter-attack focus."
+
+        st.subheader("Tactical Advice")
+        st.success(strategy)
+
+        st.subheader("Mental Preparation")
+        st.info("Stay composed. Focus on execution, not outcome.")
+        
