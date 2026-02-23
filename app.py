@@ -1,204 +1,220 @@
 import streamlit as st
 
 st.set_page_config(page_title="CoachBot Elite", layout="wide")
-st.title("🏆 CoachBot Elite")
 
-# -----------------------
-# SIDEBAR
-# -----------------------
+st.title("⚽ CoachBot Elite - AI Performance System")
 
-st.sidebar.header("Athlete Profile")
+# -----------------------------
+# WEEKLY PLAN GENERATOR
+# -----------------------------
 
-sport = st.sidebar.selectbox(
-    "Sport",
-    ["Football", "Basketball", "Athletics"]
-)
+def generate_weekly_plan(position, injury, fitness_level):
 
-position = st.sidebar.selectbox(
-    "Position",
-    ["Forward", "Midfielder", "Defender", "Goalkeeper"]
-)
+    intensity_map = {
+        "Beginner": "Low–Moderate",
+        "Intermediate": "Moderate–High",
+        "Advanced": "High Intensity"
+    }
 
-injury_status = st.sidebar.selectbox(
-    "Injury Status",
-    ["No Injury", "Minor Injury", "Moderate Injury", "Severe Injury"]
-)
+    intensity = intensity_map.get(fitness_level, "Moderate")
+    injury_note = f"Avoid overload due to {injury}." if injury else "No injury restrictions."
 
-training_days = st.sidebar.selectbox(
-    "Training Days",
-    [3, 4, 5, 6, 7]
-)
+    return f"""
+## 📅 Weekly Training Plan
 
-generate = st.sidebar.button("🚀 Generate Performance Plan")
+---
 
-# -----------------------
+### Day 1: Finishing & Acceleration
+• 10–20m explosive sprints  
+• First-step acceleration drills  
+• Position-specific finishing for {position}  
+Intensity: {intensity}
+
+---
+
+### Day 2: Speed & Agility
+• Ladder drills  
+• Cone direction changes  
+• Reaction-based sprint starts  
+Note: {injury_note}
+
+---
+
+### Day 3: Tactical Awareness
+• Small-sided game scenarios  
+• Decision-making under pressure  
+• Movement analysis for {position}
+
+---
+
+### Day 4: Recovery & Mobility
+• Light jog  
+• Dynamic stretching  
+• Foam rolling  
+• Joint mobility routine  
+
+---
+
+### Day 5: Strength & Conditioning
+• Bodyweight circuits  
+• Core stability training  
+• Controlled plyometrics (if injury-free)
+
+---
+
+### Day 6: Match Simulation
+• High-intensity drills  
+• Timed performance challenges  
+• Tactical transitions  
+
+---
+
+### Day 7: Rest & Mental Training
+• Active recovery or full rest  
+• Visualization practice  
+• Weekly performance reflection  
+"""
+
+
+# -----------------------------
 # TABS
-# -----------------------
+# -----------------------------
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["Injury Assessment", "Recovery", "Workout Plan", "Match Strategy", "CoachBot Assistant"]
-)
+tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
+    "🏋️ Workout Plan",
+    "🩺 Injury Assessment",
+    "♻️ Recovery",
+    "📊 Match Strategy",
+    "🤖 AI Assistant"
+])
 
-# -----------------------
-# WAIT FOR BUTTON
-# -----------------------
 
-if not generate:
-    st.info("Complete athlete profile and click 'Generate Performance Plan' to begin.")
+# =============================
+# WORKOUT PLAN TAB
+# =============================
 
-else:
+with tab_workout:
 
-    # -----------------------
-    # SMART TRAINING LOAD
-    # -----------------------
+    st.subheader("Generate Your Weekly Plan")
 
-    intensity_factor = {
-        "Football": 1.2,
-        "Basketball": 1.1,
-        "Athletics": 1.3
-    }
+    position = st.selectbox(
+        "Playing Position",
+        ["Forward", "Midfielder", "Defender", "Goalkeeper"]
+    )
 
-    sport_multiplier = intensity_factor.get(sport, 1)
+    fitness_level = st.selectbox(
+        "Fitness Level",
+        ["Beginner", "Intermediate", "Advanced"]
+    )
 
-    base_load = training_days * 12 * sport_multiplier
+    injury = st.text_input("Current Injury (optional)")
 
-    injury_modifier = {
-        "No Injury": 0,
-        "Minor Injury": -10,
-        "Moderate Injury": -25,
-        "Severe Injury": -40
-    }
+    if st.button("Generate Weekly Plan"):
 
-    training_load = max(0, int(base_load + injury_modifier[injury_status]))
-
-    if training_load > 80:
-        risk = "High ⚠️"
-    elif training_load > 55:
-        risk = "Moderate ⚠️"
-    else:
-        risk = "Low ✅"
-
-    # -----------------------
-    # TAB 1: INJURY
-    # -----------------------
-
-    with tab1:
-        st.subheader("⚕ Injury Assessment")
-
-        if injury_status == "No Injury":
-            st.success("Athlete is fully fit and cleared for structured performance training.")
-
-        elif injury_status == "Minor Injury":
-            st.warning("Minor strain detected. Reduce intensity by 20% and monitor discomfort.")
-
-        elif injury_status == "Moderate Injury":
-            st.warning("Moderate injury. Avoid high-impact drills and emphasize mobility.")
-
+        if position and fitness_level:
+            plan = generate_weekly_plan(position, injury, fitness_level)
+            st.markdown(plan)
         else:
-            st.error("Severe injury detected. Training suspension and medical clearance required.")
+            st.warning("Please complete required fields.")
 
-    # -----------------------
-    # TAB 2: RECOVERY
-    # -----------------------
 
-    with tab2:
-        st.subheader("🔄 Recovery System")
+# =============================
+# INJURY ASSESSMENT TAB
+# =============================
 
-        if injury_status == "No Injury":
-            st.write("Hydration protocol, 8+ hours sleep, post-session stretching.")
+with tab_injury:
 
-        elif injury_status == "Minor Injury":
-            st.write("Ice therapy, reduced volume training, controlled mobility work.")
+    st.subheader("Injury Assessment")
 
-        elif injury_status == "Moderate Injury":
-            st.write("Mobility drills, physiotherapy-style exercises, no impact loading.")
+    injury_description = st.text_input("Describe your injury")
 
+    if st.button("Analyze Injury"):
+
+        if injury_description:
+            st.info(f"""
+Based on your description:
+
+• Reduce high-intensity load  
+• Focus on controlled mobility work  
+• Prioritize recovery and rest  
+• Seek professional medical advice if pain persists
+""")
         else:
-            st.write("Full rest phase. Focus on rehabilitation and structured recovery plan.")
+            st.warning("Please describe the injury first.")
 
-    # -----------------------
-    # TAB 3: WORKOUT PLAN
-    # -----------------------
 
-    with tab3:
-        st.subheader("📊 Performance Overview")
+# =============================
+# RECOVERY TAB
+# =============================
 
-        col1, col2 = st.columns(2)
-        col1.metric("Training Load Score", f"{training_load} / 100")
-        col2.metric("Overtraining Risk", risk)
+with tab_recovery:
 
-        st.divider()
-        st.subheader("📅 Weekly Plan")
+    st.subheader("Recovery Protocol Generator")
 
-        def generate_week_plan(sport, position, injury_status, training_days):
+    recovery_focus = st.selectbox(
+        "Recovery Focus",
+        ["General Fatigue", "Muscle Soreness", "Post-Match Recovery"]
+    )
 
-            base_structure = [
-                "Strength & Power",
-                "Speed & Agility",
-                "Tactical Awareness",
-                "Recovery & Mobility",
-                "Conditioning",
-                "Explosive Training",
-                "Active Recovery"
-            ]
+    if st.button("Generate Recovery Plan"):
 
-            plan = base_structure[:training_days]
+        st.markdown(f"""
+### Recovery Plan: {recovery_focus}
 
-            # Position-based emphasis
-            if position == "Forward":
-                plan[0] = "Finishing & Acceleration"
-            elif position == "Defender":
-                plan[0] = "Strength & Defensive Positioning"
-            elif position == "Midfielder":
-                plan[0] = "Endurance & Ball Control"
-            elif position == "Goalkeeper":
-                plan[0] = "Reflex & Reaction Training"
+• Hydration optimization  
+• 8+ hours sleep target  
+• Light mobility exercises  
+• Nutrient timing emphasis  
+• Gradual return to intensity
+""")
 
-            # Injury logic
-            if injury_status == "Moderate Injury":
-                plan[-1] = "Extended Mobility & Controlled Rehab"
 
-            if injury_status == "Severe Injury":
-                plan = ["Rehabilitation & Rest Focus"] * training_days
+# =============================
+# MATCH STRATEGY TAB
+# =============================
 
-            return plan
+with tab_strategy:
 
-        weekly_plan = generate_week_plan(
-            sport, position, injury_status, training_days
-        )
+    st.subheader("Match Strategy Builder")
 
-        for i, session in enumerate(weekly_plan):
-            st.markdown(f"### Day {i+1}: {session}")
-            st.markdown("---")
+    opponent_style = st.selectbox(
+        "Opponent Style",
+        ["High Press", "Low Block", "Counter Attack"]
+    )
 
-    # -----------------------
-    # TAB 4: MATCH STRATEGY
-    # -----------------------
+    if st.button("Generate Strategy"):
 
-    with tab4:
-        st.subheader("🎯 Match Strategy")
+        st.markdown(f"""
+### Strategy vs {opponent_style}
 
-        if position == "Forward":
-            st.write("Exploit defensive gaps, prioritize quick finishing and off-ball runs.")
+• Maintain tactical discipline  
+• Quick transitions  
+• Exploit positional gaps  
+• Structured defensive shape  
+• Communication under pressure
+""")
 
-        elif position == "Defender":
-            st.write("Maintain compact structure, strong aerial duels, and positional discipline.")
 
-        elif position == "Midfielder":
-            st.write("Control tempo, maintain passing accuracy, transition play efficiently.")
+# =============================
+# AI ASSISTANT TAB
+# =============================
 
+with tab_assistant:
+
+    st.subheader("Ask CoachBot AI")
+
+    question = st.text_input("Ask a performance-related question")
+
+    if st.button("Get Advice"):
+
+        if question:
+            st.success("""
+AI Guidance:
+
+• Focus on consistency  
+• Train with measurable goals  
+• Improve weak areas strategically  
+• Maintain recovery balance  
+""")
         else:
-            st.write("Enhance reflex speed and command defensive organization.")
-
-    # -----------------------
-    # TAB 5: COACHBOT
-    # -----------------------
-
-    with tab5:
-        st.subheader("🤖 CoachBot Assistant")
-
-        st.write(
-            f"As a {position} in {sport}, your weekly structure balances "
-            f"performance development with injury status: {injury_status}. "
-            "Maintain consistency, manage workload intelligently, and prioritize long-term growth."
-        )
+            st.warning("Enter a question first.")
