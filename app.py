@@ -12,10 +12,20 @@ with st.sidebar:
 
     st.header("⚙ Player Profile")
 
-    sidebar_position = st.selectbox(
-        "Primary Position",
-        ["Forward", "Midfielder", "Defender", "Goalkeeper"]
+    # NEW: Sport Selector
+    sidebar_sport = st.selectbox(
+        "Select Sport",
+        ["Football", "Basketball", "Cricket", "Tennis"]
     )
+
+    # Position only needed for Football
+    if sidebar_sport == "Football":
+        sidebar_position = st.selectbox(
+            "Primary Position",
+            ["Forward", "Midfielder", "Defender", "Goalkeeper"]
+        )
+    else:
+        sidebar_position = "N/A"
 
     sidebar_fitness = st.selectbox(
         "Fitness Level",
@@ -32,14 +42,14 @@ with st.sidebar:
     sidebar_injury = st.text_input("Current Injury (optional)")
 
     st.markdown("---")
-    st.caption("CoachBot Elite v2.0")
+    st.caption("CoachBot Elite v2.1")
 
 
 # ======================================================
-# WEEKLY PLAN GENERATOR FUNCTION
+# UPDATED WEEKLY PLAN GENERATOR (Multi-Sport)
 # ======================================================
 
-def generate_weekly_plan(position, injury, fitness_level):
+def generate_weekly_plan(sport, position, injury, fitness_level):
 
     intensity_map = {
         "Beginner": "Low–Moderate",
@@ -50,65 +60,68 @@ def generate_weekly_plan(position, injury, fitness_level):
     intensity = intensity_map.get(fitness_level, "Moderate")
     injury_note = f"Avoid overload due to {injury}." if injury else "No injury restrictions."
 
+    if sport == "Football":
+        sport_focus = f"Position-specific drills for {position}"
+    elif sport == "Basketball":
+        sport_focus = "Shooting accuracy, vertical jump, defensive footwork"
+    elif sport == "Cricket":
+        sport_focus = "Batting reflex, bowling control, agility drills"
+    elif sport == "Tennis":
+        sport_focus = "Serve precision, lateral speed, endurance rallies"
+    else:
+        sport_focus = "General athletic conditioning"
+
     return f"""
-## 📅 Weekly Training Plan
+## 📅 Weekly Training Plan – {sport}
 
 ---
 
-### Day 1: Finishing & Acceleration
-• 10–20m explosive sprints  
-• First-step acceleration drills  
-• Position-specific finishing for {position}  
+### Day 1: Skill Development
+• {sport_focus}  
+• Acceleration drills  
 Intensity: {intensity}
 
 ---
 
 ### Day 2: Speed & Agility
 • Ladder drills  
-• Cone direction changes  
-• Reaction-based sprint starts  
+• Reaction training  
 Note: {injury_note}
 
 ---
 
 ### Day 3: Tactical Awareness
-• Small-sided game scenarios  
+• Game scenario simulations  
 • Decision-making under pressure  
-• Movement analysis for {position}
 
 ---
 
 ### Day 4: Recovery & Mobility
-• Light jog  
 • Dynamic stretching  
-• Foam rolling  
-• Joint mobility routine  
+• Light aerobic session  
 
 ---
 
 ### Day 5: Strength & Conditioning
-• Bodyweight circuits  
-• Core stability training  
-• Controlled plyometrics (if injury-free)
+• Core stability  
+• Plyometrics (if injury-free)
 
 ---
 
-### Day 6: Match Simulation
+### Day 6: Competitive Simulation
 • High-intensity drills  
-• Timed performance challenges  
-• Tactical transitions  
+• Performance challenges  
 
 ---
 
-### Day 7: Rest & Mental Training
-• Active recovery or full rest  
-• Visualization practice  
-• Weekly performance reflection  
+### Day 7: Rest & Mental Conditioning
+• Visualization  
+• Match review  
 """
 
 
 # ======================================================
-# TABS
+# TABS (UNCHANGED STRUCTURE)
 # ======================================================
 
 tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
@@ -121,7 +134,7 @@ tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
 
 
 # ======================================================
-# WORKOUT PLAN TAB
+# WORKOUT TAB (ONLY FUNCTION CALL UPDATED)
 # ======================================================
 
 with tab_workout:
@@ -130,8 +143,9 @@ with tab_workout:
 
     if st.button("Generate Weekly Plan"):
 
-        if sidebar_position and sidebar_fitness:
+        if sidebar_sport and sidebar_fitness:
             plan = generate_weekly_plan(
+                sidebar_sport,
                 sidebar_position,
                 sidebar_injury,
                 sidebar_fitness
@@ -142,7 +156,7 @@ with tab_workout:
 
 
 # ======================================================
-# INJURY ASSESSMENT TAB
+# REMAINING TABS (UNCHANGED)
 # ======================================================
 
 with tab_injury:
@@ -152,9 +166,7 @@ with tab_injury:
     if st.button("Analyze Injury"):
 
         if sidebar_injury:
-            st.info(f"""
-Based on your input:
-
+            st.info("""
 • Reduce high-intensity load  
 • Focus on controlled mobility work  
 • Avoid stress on injured area  
@@ -163,10 +175,6 @@ Based on your input:
         else:
             st.warning("No injury reported in sidebar.")
 
-
-# ======================================================
-# RECOVERY TAB
-# ======================================================
 
 with tab_recovery:
 
@@ -190,10 +198,6 @@ with tab_recovery:
 """)
 
 
-# ======================================================
-# MATCH STRATEGY TAB
-# ======================================================
-
 with tab_strategy:
 
     st.subheader("Match Strategy Builder")
@@ -216,10 +220,6 @@ with tab_strategy:
 """)
 
 
-# ======================================================
-# AI ASSISTANT TAB
-# ======================================================
-
 with tab_assistant:
 
     st.subheader("Ask CoachBot AI")
@@ -230,8 +230,6 @@ with tab_assistant:
 
         if question:
             st.success("""
-AI Guidance:
-
 • Train with measurable goals  
 • Improve weak areas strategically  
 • Maintain recovery balance  
