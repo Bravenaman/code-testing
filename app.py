@@ -4,9 +4,40 @@ st.set_page_config(page_title="CoachBot Elite", layout="wide")
 
 st.title("⚽ CoachBot Elite - AI Performance System")
 
-# -----------------------------
-# WEEKLY PLAN GENERATOR
-# -----------------------------
+# ======================================================
+# SIDEBAR (GLOBAL PLAYER PROFILE)
+# ======================================================
+
+with st.sidebar:
+
+    st.header("⚙ Player Profile")
+
+    sidebar_position = st.selectbox(
+        "Primary Position",
+        ["Forward", "Midfielder", "Defender", "Goalkeeper"]
+    )
+
+    sidebar_fitness = st.selectbox(
+        "Fitness Level",
+        ["Beginner", "Intermediate", "Advanced"]
+    )
+
+    sidebar_age = st.number_input(
+        "Age",
+        min_value=10,
+        max_value=45,
+        step=1
+    )
+
+    sidebar_injury = st.text_input("Current Injury (optional)")
+
+    st.markdown("---")
+    st.caption("CoachBot Elite v2.0")
+
+
+# ======================================================
+# WEEKLY PLAN GENERATOR FUNCTION
+# ======================================================
 
 def generate_weekly_plan(position, injury, fitness_level):
 
@@ -76,9 +107,9 @@ Note: {injury_note}
 """
 
 
-# -----------------------------
+# ======================================================
 # TABS
-# -----------------------------
+# ======================================================
 
 tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
     "🏋️ Workout Plan",
@@ -89,63 +120,53 @@ tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
 ])
 
 
-# =============================
+# ======================================================
 # WORKOUT PLAN TAB
-# =============================
+# ======================================================
 
 with tab_workout:
 
     st.subheader("Generate Your Weekly Plan")
 
-    position = st.selectbox(
-        "Playing Position",
-        ["Forward", "Midfielder", "Defender", "Goalkeeper"]
-    )
-
-    fitness_level = st.selectbox(
-        "Fitness Level",
-        ["Beginner", "Intermediate", "Advanced"]
-    )
-
-    injury = st.text_input("Current Injury (optional)")
-
     if st.button("Generate Weekly Plan"):
 
-        if position and fitness_level:
-            plan = generate_weekly_plan(position, injury, fitness_level)
+        if sidebar_position and sidebar_fitness:
+            plan = generate_weekly_plan(
+                sidebar_position,
+                sidebar_injury,
+                sidebar_fitness
+            )
             st.markdown(plan)
         else:
-            st.warning("Please complete required fields.")
+            st.warning("Please complete your Player Profile in the sidebar.")
 
 
-# =============================
+# ======================================================
 # INJURY ASSESSMENT TAB
-# =============================
+# ======================================================
 
 with tab_injury:
 
     st.subheader("Injury Assessment")
 
-    injury_description = st.text_input("Describe your injury")
-
     if st.button("Analyze Injury"):
 
-        if injury_description:
+        if sidebar_injury:
             st.info(f"""
-Based on your description:
+Based on your input:
 
 • Reduce high-intensity load  
 • Focus on controlled mobility work  
-• Prioritize recovery and rest  
-• Seek professional medical advice if pain persists
+• Avoid stress on injured area  
+• Seek professional medical advice if pain persists  
 """)
         else:
-            st.warning("Please describe the injury first.")
+            st.warning("No injury reported in sidebar.")
 
 
-# =============================
+# ======================================================
 # RECOVERY TAB
-# =============================
+# ======================================================
 
 with tab_recovery:
 
@@ -169,9 +190,9 @@ with tab_recovery:
 """)
 
 
-# =============================
+# ======================================================
 # MATCH STRATEGY TAB
-# =============================
+# ======================================================
 
 with tab_strategy:
 
@@ -195,9 +216,9 @@ with tab_strategy:
 """)
 
 
-# =============================
+# ======================================================
 # AI ASSISTANT TAB
-# =============================
+# ======================================================
 
 with tab_assistant:
 
@@ -211,10 +232,10 @@ with tab_assistant:
             st.success("""
 AI Guidance:
 
-• Focus on consistency  
 • Train with measurable goals  
 • Improve weak areas strategically  
 • Maintain recovery balance  
+• Focus on consistency and discipline
 """)
         else:
             st.warning("Enter a question first.")
