@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="CoachBot Elite", layout="wide")
 
-st.title("⚽ CoachBot Elite - AI Performance System")
+st.title("🏆  CoachBot Elite - AI Performance System")
 
 # ======================================================
 # SIDEBAR (GLOBAL PLAYER PROFILE)
