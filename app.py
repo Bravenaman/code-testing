@@ -1,6 +1,5 @@
 import streamlit as st
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="CoachBot Elite", page_icon="🏆", layout="wide")
