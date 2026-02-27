@@ -1,239 +1,220 @@
 import streamlit as st
+from google import genai
+from google.genai import types
 
-st.set_page_config(page_title="CoachBot Elite", layout="wide")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(page_title="CoachBot Elite", page_icon="🏆", layout="wide")
 
-st.title("🏆  CoachBot Elite - AI Performance System")
+st.title("🏆 CoachBot Elite – Youth Performance AI")
+st.markdown("⚠️ AI-generated advice. This does NOT replace professional medical clearance.")
 
-# ======================================================
-# SIDEBAR (GLOBAL PLAYER PROFILE)
-# ======================================================
+# ---------------- GEMINI SETUP ----------------
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-with st.sidebar:
+MODEL = "gemini-1.5-pro"
 
-    st.header("⚙ Player Profile")
+# ---------------- SESSION STATE ----------------
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-    # NEW: Sport Selector
-    sidebar_sport = st.selectbox(
-        "Select Sport",
-        ["Football", "Basketball", "Cricket", "Tennis"]
-    )
+# ---------------- SIDEBAR ----------------
+st.sidebar.header("👤 Athlete Profile")
 
-    # Position only needed for Football
-    if sidebar_sport == "Football":
-        sidebar_position = st.selectbox(
-            "Primary Position",
-            ["Forward", "Midfielder", "Defender", "Goalkeeper"]
+sport_positions = {
+    "Football": ["Goalkeeper", "Defender", "Midfielder", "Striker"],
+    "Basketball": ["Guard", "Forward", "Center"],
+    "Cricket": ["Batsman", "Bowler", "All-Rounder"],
+    "Tennis": ["Singles", "Doubles"],
+}
+
+sport = st.sidebar.selectbox("Sport", list(sport_positions.keys()), key="sport")
+position = st.sidebar.selectbox("Position", sport_positions[sport], key="position")
+
+age = st.sidebar.slider("Age", 10, 25, 15, key="age")
+experience = st.sidebar.selectbox(
+    "Experience Level",
+    ["Beginner", "Intermediate", "Advanced"],
+    key="experience"
+)
+
+training_intensity = st.sidebar.slider(
+    "Training Intensity (1-10)",
+    1, 10, 5,
+    key="intensity"
+)
+
+injury_type = st.sidebar.selectbox(
+    "Injury Type",
+    ["None", "Minor", "Moderate", "Severe"],
+    key="injury"
+)
+
+upcoming_match = st.sidebar.toggle("Upcoming Match?", key="match")
+
+# ---------------- RISK CALCULATION ----------------
+risk_score = 0
+
+if injury_type == "Severe":
+    risk_score += 3
+elif injury_type == "Moderate":
+    risk_score += 2
+elif injury_type == "Minor":
+    risk_score += 1
+
+if training_intensity > 7:
+    risk_score += 2
+
+if age < 14:
+    risk_score += 1
+
+if risk_score <= 2:
+    risk_level = "🟢 Low Risk"
+elif risk_score <= 4:
+    risk_level = "🟡 Moderate Risk"
+else:
+    risk_level = "🔴 High Risk"
+
+st.sidebar.markdown(f"### Injury Risk Level: {risk_level}")
+
+# ---------------- HELPER FUNCTION ----------------
+def generate_ai_response(prompt):
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.35,
+                top_p=0.9,
+            ),
         )
-    else:
-        sidebar_position = "N/A"
+        return response.text
+    except Exception as e:
+        return f"Error generating response: {e}"
 
-    sidebar_fitness = st.selectbox(
-        "Fitness Level",
-        ["Beginner", "Intermediate", "Advanced"]
-    )
-
-    sidebar_age = st.number_input(
-        "Age",
-        min_value=10,
-        max_value=45,
-        step=1
-    )
-
-    sidebar_injury = st.text_input("Current Injury (optional)")
-
-    st.markdown("---")
-    st.caption("CoachBot Elite v2.1")
-
-
-# ======================================================
-# UPDATED WEEKLY PLAN GENERATOR (Multi-Sport)
-# ======================================================
-
-def generate_weekly_plan(sport, position, injury, fitness_level):
-
-    intensity_map = {
-        "Beginner": "Low–Moderate",
-        "Intermediate": "Moderate–High",
-        "Advanced": "High Intensity"
-    }
-
-    intensity = intensity_map.get(fitness_level, "Moderate")
-    injury_note = f"Avoid overload due to {injury}." if injury else "No injury restrictions."
-
-    if sport == "Football":
-        sport_focus = f"Position-specific drills for {position}"
-    elif sport == "Basketball":
-        sport_focus = "Shooting accuracy, vertical jump, defensive footwork"
-    elif sport == "Cricket":
-        sport_focus = "Batting reflex, bowling control, agility drills"
-    elif sport == "Tennis":
-        sport_focus = "Serve precision, lateral speed, endurance rallies"
-    else:
-        sport_focus = "General athletic conditioning"
-
-    return f"""
-## 📅 Weekly Training Plan – {sport}
-
----
-
-### Day 1: Skill Development
-• {sport_focus}  
-• Acceleration drills  
-Intensity: {intensity}
-
----
-
-### Day 2: Speed & Agility
-• Ladder drills  
-• Reaction training  
-Note: {injury_note}
-
----
-
-### Day 3: Tactical Awareness
-• Game scenario simulations  
-• Decision-making under pressure  
-
----
-
-### Day 4: Recovery & Mobility
-• Dynamic stretching  
-• Light aerobic session  
-
----
-
-### Day 5: Strength & Conditioning
-• Core stability  
-• Plyometrics (if injury-free)
-
----
-
-### Day 6: Competitive Simulation
-• High-intensity drills  
-• Performance challenges  
-
----
-
-### Day 7: Rest & Mental Conditioning
-• Visualization  
-• Match review  
-"""
-
-
-# ======================================================
-# TABS (UNCHANGED STRUCTURE)
-# ======================================================
-
-tab_workout, tab_injury, tab_recovery, tab_strategy, tab_assistant = st.tabs([
-    "🏋️ Workout Plan",
+# ---------------- TABS ----------------
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🩺 Injury Assessment",
-    "♻️ Recovery",
-    "📊 Match Strategy",
-    "🤖 AI Assistant"
+    "🔄 Recovery Plan",
+    "🏋️ Weekly Training Plan",
+    "🧠 Match Strategy",
+    "🤖 Assistant"
 ])
 
+# ---------------- INJURY TAB ----------------
+with tab1:
+    st.subheader("Injury Risk Assessment")
 
-# ======================================================
-# WORKOUT TAB (ONLY FUNCTION CALL UPDATED)
-# ======================================================
+    if st.button("Generate Injury Assessment", key="injury_btn"):
+        prompt = f"""
+        Athlete Profile:
+        Sport: {sport}
+        Position: {position}
+        Age: {age}
+        Experience: {experience}
+        Injury: {injury_type}
+        Training Intensity: {training_intensity}/10
 
-with tab_workout:
+        Provide:
+        1. Risk Explanation
+        2. Training Modifications
+        3. What To Avoid
+        4. Medical Disclaimer
+        """
 
-    st.subheader("Generate Your Weekly Plan")
+        st.markdown(generate_ai_response(prompt))
 
-    if st.button("Generate Weekly Plan"):
+# ---------------- RECOVERY TAB ----------------
+with tab2:
+    st.subheader("Recovery Optimization Plan")
 
-        if sidebar_sport and sidebar_fitness:
-            plan = generate_weekly_plan(
-                sidebar_sport,
-                sidebar_position,
-                sidebar_injury,
-                sidebar_fitness
-            )
-            st.markdown(plan)
-        else:
-            st.warning("Please complete your Player Profile in the sidebar.")
+    if st.button("Generate Recovery Plan", key="recovery_btn"):
+        prompt = f"""
+        Athlete Profile:
+        Sport: {sport}
+        Position: {position}
+        Injury: {injury_type}
+        Age: {age}
 
+        Provide structured recovery plan including:
+        - Immediate Actions
+        - 1-Week Plan
+        - Hydration Guidance
+        - Sleep Recommendation
+        - Gradual Return Strategy
+        """
 
-# ======================================================
-# REMAINING TABS (UNCHANGED)
-# ======================================================
+        st.markdown(generate_ai_response(prompt))
 
-with tab_injury:
+# ---------------- WEEKLY PLAN TAB ----------------
+with tab3:
+    st.subheader("Adaptive Weekly Training Plan")
 
-    st.subheader("Injury Assessment")
+    if st.button("Generate Weekly Plan", key="weekly_btn"):
+        prompt = f"""
+        Athlete Profile:
+        Sport: {sport}
+        Position: {position}
+        Age: {age}
+        Experience: {experience}
+        Injury: {injury_type}
+        Training Intensity: {training_intensity}/10
 
-    if st.button("Analyze Injury"):
+        Create a 7-day structured training plan.
+        For each day include:
+        - Focus Area
+        - Intensity Level
+        - Short Explanation
+        Ensure safety if injury exists.
+        """
 
-        if sidebar_injury:
-            st.info("""
-• Reduce high-intensity load  
-• Focus on controlled mobility work  
-• Avoid stress on injured area  
-• Seek professional medical advice if pain persists  
-""")
-        else:
-            st.warning("No injury reported in sidebar.")
+        st.markdown(generate_ai_response(prompt))
 
+# ---------------- STRATEGY TAB ----------------
+with tab4:
+    st.subheader("Match Strategy Generator")
 
-with tab_recovery:
+    if st.button("Generate Strategy", key="strategy_btn"):
+        prompt = f"""
+        Athlete Profile:
+        Sport: {sport}
+        Position: {position}
+        Experience: {experience}
+        Upcoming Match: {upcoming_match}
 
-    st.subheader("Recovery Protocol Generator")
+        Provide:
+        - Tactical Role Advice
+        - Key Strength Focus
+        - Energy Management Tip
+        - Mental Preparation Cue
+        """
 
-    recovery_focus = st.selectbox(
-        "Recovery Focus",
-        ["General Fatigue", "Muscle Soreness", "Post-Match Recovery"]
-    )
+        st.markdown(generate_ai_response(prompt))
 
-    if st.button("Generate Recovery Plan"):
+# ---------------- ASSISTANT TAB ----------------
+with tab5:
+    st.subheader("AI Performance Assistant")
 
-        st.markdown(f"""
-### Recovery Plan: {recovery_focus}
+    user_question = st.text_input("Ask your question:", key="assistant_input")
 
-• Hydration optimization  
-• 8+ hours sleep target  
-• Light mobility exercises  
-• Nutrient timing emphasis  
-• Gradual return to intensity
-""")
+    if st.button("Ask Assistant", key="assistant_btn"):
+        if user_question.strip() != "":
+            full_prompt = f"""
+            Athlete Profile:
+            Sport: {sport}
+            Position: {position}
+            Age: {age}
+            Experience: {experience}
+            Injury: {injury_type}
+            Training Intensity: {training_intensity}/10
 
+            User Question:
+            {user_question}
+            """
 
-with tab_strategy:
+            answer = generate_ai_response(full_prompt)
 
-    st.subheader("Match Strategy Builder")
+            st.session_state.chat_history.append(("You", user_question))
+            st.session_state.chat_history.append(("CoachBot", answer))
 
-    opponent_style = st.selectbox(
-        "Opponent Style",
-        ["High Press", "Low Block", "Counter Attack"]
-    )
-
-    if st.button("Generate Strategy"):
-
-        st.markdown(f"""
-### Strategy vs {opponent_style}
-
-• Maintain tactical discipline  
-• Quick transitions  
-• Exploit positional gaps  
-• Structured defensive shape  
-• Communication under pressure
-""")
-
-
-with tab_assistant:
-
-    st.subheader("Ask CoachBot AI")
-
-    question = st.text_input("Ask a performance-related question")
-
-    if st.button("Get Advice"):
-
-        if question:
-            st.success("""
-• Train with measurable goals  
-• Improve weak areas strategically  
-• Maintain recovery balance  
-• Focus on consistency and discipline
-""")
-        else:
-            st.warning("Enter a question first.")
+    for sender, message in st.session_state.chat_history:
+        st.markdown(f"**{sender}:** {message}")
