@@ -4,76 +4,29 @@ import pandas as pd
 import time
 
 # ==========================================
-# 1. PAGE CONFIGURATION & VIBRANT CSS
+# PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(page_title="CoachBot AI | NextGen", page_icon="⚡", layout="wide")
 
-st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 100%);
-}
-h1, h2, h3, h4, h5, h6, p, span, label, li, div {
-    color: black !important;
-    font-family: 'Helvetica Neue', sans-serif;
-}
-h1, h2, h3 {
-    font-family: 'Arial Black', sans-serif;
-}
-[data-testid="stSidebar"] {
-    background-color: #e2e8f0 !important; 
-}
-.stButton>button {
-    background: linear-gradient(90deg, #f97316 0%, #e11d48 100%);
-    border-radius: 30px;
-    padding: 12px 28px;
-    font-weight: 800;
-    font-size: 18px;
-    border: none;
-    box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
-    transition: all 0.3s ease;
-}
-.stButton>button:hover { 
-    transform: translateY(-2px) scale(1.02);
-}
-.stTextInput>div>div>input, .stTextArea>div>div>textarea {
-    border: 2px solid #8b5cf6 !important;
-    border-radius: 10px;
-    background-color: white !important;
-    color: black !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # ==========================================
-# 2. HEADER & API CONFIGURATION
+# API SETUP (NEW SDK)
 # ==========================================
-col_logo, col_title = st.columns([1, 8])
-with col_logo:
-    st.image("https://cdn-icons-png.flaticon.com/512/3043/3043888.png", width=80) 
-with col_title:
-    st.title("⚡ CoachBot AI: NextGen Virtual Coach")
-    st.markdown("*Empowering youth athletes with AI-driven, personalized sports science.*")
-
 st.sidebar.header("🔐 Authentication")
 
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-3-flash-preview')
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
     st.sidebar.success("✅ API Key Loaded Securely")
-except KeyError:
-    st.sidebar.error("❌ API Key missing! Please configure Streamlit Secrets.")
-    api_key = None
+except Exception:
+    st.sidebar.error("❌ API Key missing! Configure in Streamlit Secrets.")
+    client = None
 
 st.sidebar.header("⚙️ CoachBot Brain Tuning")
 temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.4, 0.1)
 top_p = st.sidebar.slider("Focus (Top P)", 0.0, 1.0, 0.9, 0.1)
 
 # ==========================================
-# 3. SPORT & POSITION LOGIC (NEW ADDITION)
+# SPORT & POSITION LOGIC
 # ==========================================
-
 sport_positions = {
     "Football": ["Goalkeeper", "Right Back", "Left Back", "Center Back", "Defensive Midfielder", "Attacking Midfielder", "Winger", "Striker"],
     "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
@@ -83,103 +36,113 @@ sport_positions = {
 }
 
 # ==========================================
-# 4. MAIN DASHBOARD UI
+# TABS
 # ==========================================
-tab1, tab2, tab3 = st.tabs(["📋 Athlete Setup", "🏋️‍♂️ Generate Plan", "📊 Analytics & Diet"])
+tab1, tab2, tab3 = st.tabs(["📋 Athlete Setup", "🏋️ Generate Plan", "📊 Analytics"])
 
-# --- TAB 1 ---
+# =========================
+# TAB 1 — ATHLETE SETUP
+# =========================
 with tab1:
-    st.subheader("Define Your Athlete Profile")
-    
-    c1, c2, c3 = st.columns(3)
-    
-    with c1:
-        sport = st.selectbox(
-            "Primary Sport 🏀",
-            list(sport_positions.keys()),
-            key="sport_dropdown"
-        )
+    st.subheader("Define Athlete Profile")
 
-        position = st.selectbox(
-            "Position/Role 🎯",
-            sport_positions[sport],
-            key="position_dropdown"
-        )
+    col1, col2, col3 = st.columns(3)
 
-    with c2:
-        age = st.number_input("Athlete Age 🎂", min_value=8, max_value=25, value=16)
-        intensity = st.slider("Target Intensity 🔥 (1-10)", 1, 10, 6)
-        training_pref = st.text_input("Training Preference 🏋️")
+    with col1:
+        sport = st.selectbox("Primary Sport 🏀", list(sport_positions.keys()))
+        position = st.selectbox("Position 🎯", sport_positions[sport])
 
-    with c3:
-        goal = st.text_input("Desired Goal 🏆")
-        diet = st.text_input("Dietary Needs 🥗")
+    with col2:
+        age = st.number_input("Age 🎂", 8, 25, 16)
+        intensity = st.slider("Intensity 🔥 (1-10)", 1, 10, 6)
+        training_pref = st.text_input("Training Preference")
 
-    st.error("⚠️ Current Problem or Injury Context")
-    problem_injury = st.text_area(
-        "Describe any current problems, injuries, or pain points:"
-    )
+    with col3:
+        goal = st.text_input("Goal 🏆")
+        diet = st.text_input("Diet Needs 🥗")
 
-# --- TAB 2 ---
+    st.error("⚠️ Injury / Problem Context")
+    problem_injury = st.text_area("Describe current issue:")
+
+# =========================
+# TAB 2 — AI GENERATION
+# =========================
 with tab2:
-    st.subheader("🧠 Request AI Coaching")
-    
-    feature = st.selectbox("Select Coaching Module 🛠️:", [
-        "1. Full-Body Workout Plan",
-        "2. Safe Recovery Training Schedule",
-        "3. Tactical Coaching Tips",
-        "4. Nutrition & Meal Guide",
-        "5. Warm-up & Cooldown Routine",
-        "6. Pre-Match Mental Visualization",
-        "7. Hydration & Electrolyte Strategy",
-        "8. Positional Decision-Making Drills",
-        "9. Sleep & Recovery Optimization",
-        "10. Off-Season Conditioning Plan"
+    st.subheader("AI Coaching Engine")
+
+    feature = st.selectbox("Select Module:", [
+        "Workout Plan",
+        "Recovery Plan",
+        "Match Strategy",
+        "Nutrition Guide",
+        "Warmup Routine",
+        "Mental Preparation",
+        "Hydration Strategy",
+        "Decision-Making Drills",
+        "Sleep Optimization",
+        "Off-Season Plan"
     ])
 
-    if st.button("🚀 Generate My Personalized Plan"):
-        if not api_key:
-            st.error("Cannot generate plan: API key missing.")
-        elif not goal.strip() or not diet.strip() or not training_pref.strip():
-            st.warning("Please complete required fields in Athlete Setup.")
-        elif not problem_injury.strip():
-            st.warning("Please describe your injury or problem.")
-        else:
-            system_prompt = "You are CoachBot AI, an expert youth sports coach. Prioritize safety."
-            user_context = f"Athlete: {age}yo {sport} {position}. Injury: {problem_injury}. Goal: {goal}. Diet: {diet}. Intensity: {intensity}/10. Training Preference: {training_pref}."
-            task = f"Task: {feature}. Use markdown formatting and bullet points."
+    if st.button("🚀 Generate Plan"):
 
-            with st.spinner("Generating your personalized plan..."):
+        if not client:
+            st.error("API not configured.")
+        elif not goal or not training_pref or not problem_injury:
+            st.warning("Complete all required fields in Athlete Setup.")
+        else:
+
+            system_prompt = "You are an elite youth sports performance coach. Prioritize safety and clarity."
+
+            user_context = f"""
+            Athlete Profile:
+            Age: {age}
+            Sport: {sport}
+            Position: {position}
+            Injury/Issue: {problem_injury}
+            Goal: {goal}
+            Diet: {diet}
+            Intensity: {intensity}/10
+            Training Preference: {training_pref}
+            """
+
+            task = f"Generate a structured {feature}. Use headings and bullet points."
+
+            with st.spinner("Generating..."):
                 try:
                     time.sleep(1)
-                    response = model.generate_content(
-                        f"{system_prompt}\n\n{user_context}\n\n{task}",
-                        generation_config=genai.types.GenerationConfig(
-                            temperature=temperature,
-                            top_p=top_p
-                        )
+
+                    response = client.models.generate_content(
+                        model="gemini-1.5-flash",
+                        contents=f"{system_prompt}\n\n{user_context}\n\n{task}",
+                        config={
+                            "temperature": temperature,
+                            "top_p": top_p,
+                        }
                     )
 
-                    st.success("🎉 Plan Generated Successfully!")
+                    st.success("Plan Generated ✅")
                     st.markdown(response.text)
 
                 except Exception as e:
-                    st.error(f"Generation Failed: {e}")
+                    st.error(f"Error: {e}")
 
-# --- TAB 3 ---
+# =========================
+# TAB 3 — ANALYTICS
+# =========================
 with tab3:
-    st.subheader("📊 Athlete Dashboard Trackers")
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Readiness Score", "85%", "+5%")
-    col2.metric("Hydration Level", "Optimal", "Maintained")
-    col3.metric("Injury Risk", "Low", "-10%")
+    st.subheader("Athlete Performance Dashboard")
 
-    st.markdown("### Weekly Macro Tracker 🍎")
-    macro_data = pd.DataFrame({
-        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "Protein (g)": [120, 130, 120, 140, 125],
-        "Carbs (g)": [250, 300, 250, 320, 280]
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Readiness", "85%", "+4%")
+    col2.metric("Hydration", "Optimal")
+    col3.metric("Injury Risk", "Low")
+
+    st.markdown("### Weekly Nutrition Tracker")
+
+    df = pd.DataFrame({
+        "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        "Protein (g)": [120, 130, 115, 140, 125],
+        "Carbs (g)": [250, 280, 260, 300, 275]
     })
 
-    st.dataframe(macro_data, use_container_width=True, hide_index=True)
+    st.dataframe(df, use_container_width=True)
