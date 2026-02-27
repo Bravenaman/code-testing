@@ -1,435 +1,185 @@
 import streamlit as st
 import google.generativeai as genai
+import pandas as pd
+import time
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="CoachBot Elite", page_icon="🏆", layout="wide")
+# ==========================================
+# 1. PAGE CONFIGURATION & VIBRANT CSS
+# ==========================================
+st.set_page_config(page_title="CoachBot AI | NextGen", page_icon="⚡", layout="wide")
 
-st.title("🏆 CoachBot Elite – Youth Performance AI")
-st.markdown("⚠️ AI-generated advice. This does NOT replace professional medical clearance.")
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 100%);
+}
+h1, h2, h3, h4, h5, h6, p, span, label, li, div {
+    color: black !important;
+    font-family: 'Helvetica Neue', sans-serif;
+}
+h1, h2, h3 {
+    font-family: 'Arial Black', sans-serif;
+}
+[data-testid="stSidebar"] {
+    background-color: #e2e8f0 !important; 
+}
+.stButton>button {
+    background: linear-gradient(90deg, #f97316 0%, #e11d48 100%);
+    border-radius: 30px;
+    padding: 12px 28px;
+    font-weight: 800;
+    font-size: 18px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+    transition: all 0.3s ease;
+}
+.stButton>button:hover { 
+    transform: translateY(-2px) scale(1.02);
+}
+.stTextInput>div>div>input, .stTextArea>div>div>textarea {
+    border: 2px solid #8b5cf6 !important;
+    border-radius: 10px;
+    background-color: white !important;
+    color: black !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# ---------------- GEMINI SETUP ----------------
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-pro")
+# ==========================================
+# 2. HEADER & API CONFIGURATION
+# ==========================================
+col_logo, col_title = st.columns([1, 8])
+with col_logo:
+    st.image("https://cdn-icons-png.flaticon.com/512/3043/3043888.png", width=80) 
+with col_title:
+    st.title("⚡ CoachBot AI: NextGen Virtual Coach")
+    st.markdown("*Empowering youth athletes with AI-driven, personalized sports science.*")
 
-# ---------------- SESSION STATE ----------------
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+st.sidebar.header("🔐 Authentication")
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.header("👤 Athlete Profile")
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-3-flash-preview')
+    st.sidebar.success("✅ API Key Loaded Securely")
+except KeyError:
+    st.sidebar.error("❌ API Key missing! Please configure Streamlit Secrets.")
+    api_key = None
+
+st.sidebar.header("⚙️ CoachBot Brain Tuning")
+temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.4, 0.1)
+top_p = st.sidebar.slider("Focus (Top P)", 0.0, 1.0, 0.9, 0.1)
+
+# ==========================================
+# 3. SPORT & POSITION LOGIC (NEW ADDITION)
+# ==========================================
 
 sport_positions = {
-    "Football": ["Goalkeeper", "Defender", "Midfielder", "Striker"],
-    "Basketball": ["Guard", "Forward", "Center"],
-    "Cricket": ["Batsman", "Bowler", "All-Rounder"],
-    "Tennis": ["Singles", "Doubles"],
+    "Football": ["Goalkeeper", "Right Back", "Left Back", "Center Back", "Defensive Midfielder", "Attacking Midfielder", "Winger", "Striker"],
+    "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+    "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicketkeeper"],
+    "Tennis": ["Singles Player", "Doubles Player"],
+    "Swimming": ["Freestyle", "Backstroke", "Breaststroke", "Butterfly"],
 }
 
-sport = st.sidebar.selectbox("Sport", list(sport_positions.keys()), key="sport")
-position = st.sidebar.selectbox("Position", sport_positions[sport], key="position")
+# ==========================================
+# 4. MAIN DASHBOARD UI
+# ==========================================
+tab1, tab2, tab3 = st.tabs(["📋 Athlete Setup", "🏋️‍♂️ Generate Plan", "📊 Analytics & Diet"])
 
-age = st.sidebar.slider("Age", 10, 25, 15, key="age")
-
-experience = st.sidebar.selectbox(
-    "Experience Level",
-    ["Beginner", "Intermediate", "Advanced"],
-    key="experience"
-)
-
-training_intensity = st.sidebar.slider(
-    "Training Intensity (1-10)",
-    1, 10, 5,
-    key="intensity"
-)
-
-injury_type = st.sidebar.selectbox(
-    "Injury Type",
-    ["None", "Minor", "Moderate", "Severe"],
-    key="injury"
-)
-
-upcoming_match = st.sidebar.toggle("Upcoming Match?", key="match")
-
-# ---------------- RISK CALCULATION ----------------
-risk_score = 0
-
-if injury_type == "Severe":
-    risk_score += 3
-elif injury_type == "Moderate":
-    risk_score += 2
-elif injury_type == "Minor":
-    risk_score += 1
-
-if training_intensity > 7:
-    risk_score += 2
-
-if age < 14:
-    risk_score += 1
-
-if risk_score <= 2:
-    risk_level = "🟢 Low Risk"
-elif risk_score <= 4:
-    risk_level = "🟡 Moderate Risk"
-else:
-    risk_level = "🔴 High Risk"
-
-st.sidebar.markdown(f"### Injury Risk Level: {risk_level}")
-
-# ---------------- HELPER FUNCTION ----------------
-def generate_ai_response(prompt):
-    try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.35,
-                "top_p": 0.9,
-            }
-        )
-        return response.text
-    except Exception as e:
-        return f"Error generating response: {e}"
-
-# ---------------- TABS ----------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🩺 Injury Assessment",
-    "🔄 Recovery Plan",
-    "🏋️ Weekly Training Plan",
-    "🧠 Match Strategy",
-    "🤖 Assistant"
-])
-
-# ---------------- INJURY TAB ----------------
+# --- TAB 1 ---
 with tab1:
-    st.subheader("Injury Risk Assessment")
-
-    if st.button("Generate Injury Assessment", key="injury_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Age: {age}
-        Experience: {experience}
-        Injury: {injury_type}
-        Training Intensity: {training_intensity}/10
-
-        Provide:
-        1. Risk Explanation
-        2. Training Modifications
-        3. What To Avoid
-        4. Medical Disclaimer
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- RECOVERY TAB ----------------
-with tab2:
-    st.subheader("Recovery Optimization Plan")
-
-    if st.button("Generate Recovery Plan", key="recovery_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Injury: {injury_type}
-        Age: {age}
-
-        Provide structured recovery plan including:
-        - Immediate Actions
-        - 1-Week Plan
-        - Hydration Guidance
-        - Sleep Recommendation
-        - Gradual Return Strategy
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- WEEKLY PLAN TAB ----------------
-with tab3:
-    st.subheader("Adaptive Weekly Training Plan")
-
-    if st.button("Generate Weekly Plan", key="weekly_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Age: {age}
-        Experience: {experience}
-        Injury: {injury_type}
-        Training Intensity: {training_intensity}/10
-
-        Create a 7-day structured training plan.
-        For each day include:
-        - Focus Area
-        - Intensity Level
-        - Short Explanation
-        Ensure safety if injury exists.
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- STRATEGY TAB ----------------
-with tab4:
-    st.subheader("Match Strategy Generator")
-
-    if st.button("Generate Strategy", key="strategy_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Experience: {experience}
-        Upcoming Match: {upcoming_match}
-
-        Provide:
-        - Tactical Role Advice
-        - Key Strength Focus
-        - Energy Management Tip
-        - Mental Preparation Cue
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- ASSISTANT TAB ----------------
-with tab5:
-    st.subheader("AI Performance Assistant")
-
-    user_question = st.text_input("Ask your question:", key="assistant_input")
-
-    if st.button("Ask Assistant", key="assistant_btn"):
-        if user_question.strip() != "":
-            full_prompt = f"""
-            Athlete Profile:
-            Sport: {sport}
-            Position: {position}
-            Age: {age}
-            Experience: {experience}
-            Injury: {injury_type}
-            Training Intensity: {training_intensity}/10
-
-            User Question:
-            {user_question}
-            """
-
-            answer = generate_ai_response(full_prompt)
-
-            st.session_state.chat_history.append(("You", user_question))
-            st.session_state.chat_history.append(("CoachBot", answer))
-
-    for sender, message in st.session_state.chat_history:
-        st.markdown(f"**{sender}:** {message}")import streamlit as st
-import google.generativeai as genai
-
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="CoachBot Elite", page_icon="🏆", layout="wide")
-
-st.title("🏆 CoachBot Elite – Youth Performance AI")
-st.markdown("⚠️ AI-generated advice. This does NOT replace professional medical clearance.")
-
-# ---------------- GEMINI SETUP ----------------
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-pro")
-
-# ---------------- SESSION STATE ----------------
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-# ---------------- SIDEBAR ----------------
-st.sidebar.header("👤 Athlete Profile")
-
-sport_positions = {
-    "Football": ["Goalkeeper", "Defender", "Midfielder", "Striker"],
-    "Basketball": ["Guard", "Forward", "Center"],
-    "Cricket": ["Batsman", "Bowler", "All-Rounder"],
-    "Tennis": ["Singles", "Doubles"],
-}
-
-sport = st.sidebar.selectbox("Sport", list(sport_positions.keys()), key="sport")
-position = st.sidebar.selectbox("Position", sport_positions[sport], key="position")
-
-age = st.sidebar.slider("Age", 10, 25, 15, key="age")
-
-experience = st.sidebar.selectbox(
-    "Experience Level",
-    ["Beginner", "Intermediate", "Advanced"],
-    key="experience"
-)
-
-training_intensity = st.sidebar.slider(
-    "Training Intensity (1-10)",
-    1, 10, 5,
-    key="intensity"
-)
-
-injury_type = st.sidebar.selectbox(
-    "Injury Type",
-    ["None", "Minor", "Moderate", "Severe"],
-    key="injury"
-)
-
-upcoming_match = st.sidebar.toggle("Upcoming Match?", key="match")
-
-# ---------------- RISK CALCULATION ----------------
-risk_score = 0
-
-if injury_type == "Severe":
-    risk_score += 3
-elif injury_type == "Moderate":
-    risk_score += 2
-elif injury_type == "Minor":
-    risk_score += 1
-
-if training_intensity > 7:
-    risk_score += 2
-
-if age < 14:
-    risk_score += 1
-
-if risk_score <= 2:
-    risk_level = "🟢 Low Risk"
-elif risk_score <= 4:
-    risk_level = "🟡 Moderate Risk"
-else:
-    risk_level = "🔴 High Risk"
-
-st.sidebar.markdown(f"### Injury Risk Level: {risk_level}")
-
-# ---------------- HELPER FUNCTION ----------------
-def generate_ai_response(prompt):
-    try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.35,
-                "top_p": 0.9,
-            }
+    st.subheader("Define Your Athlete Profile")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        sport = st.selectbox(
+            "Primary Sport 🏀",
+            list(sport_positions.keys()),
+            key="sport_dropdown"
         )
-        return response.text
-    except Exception as e:
-        return f"Error generating response: {e}"
 
-# ---------------- TABS ----------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🩺 Injury Assessment",
-    "🔄 Recovery Plan",
-    "🏋️ Weekly Training Plan",
-    "🧠 Match Strategy",
-    "🤖 Assistant"
-])
+        position = st.selectbox(
+            "Position/Role 🎯",
+            sport_positions[sport],
+            key="position_dropdown"
+        )
 
-# ---------------- INJURY TAB ----------------
-with tab1:
-    st.subheader("Injury Risk Assessment")
+    with c2:
+        age = st.number_input("Athlete Age 🎂", min_value=8, max_value=25, value=16)
+        intensity = st.slider("Target Intensity 🔥 (1-10)", 1, 10, 6)
+        training_pref = st.text_input("Training Preference 🏋️")
 
-    if st.button("Generate Injury Assessment", key="injury_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Age: {age}
-        Experience: {experience}
-        Injury: {injury_type}
-        Training Intensity: {training_intensity}/10
+    with c3:
+        goal = st.text_input("Desired Goal 🏆")
+        diet = st.text_input("Dietary Needs 🥗")
 
-        Provide:
-        1. Risk Explanation
-        2. Training Modifications
-        3. What To Avoid
-        4. Medical Disclaimer
-        """
+    st.error("⚠️ Current Problem or Injury Context")
+    problem_injury = st.text_area(
+        "Describe any current problems, injuries, or pain points:"
+    )
 
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- RECOVERY TAB ----------------
+# --- TAB 2 ---
 with tab2:
-    st.subheader("Recovery Optimization Plan")
+    st.subheader("🧠 Request AI Coaching")
+    
+    feature = st.selectbox("Select Coaching Module 🛠️:", [
+        "1. Full-Body Workout Plan",
+        "2. Safe Recovery Training Schedule",
+        "3. Tactical Coaching Tips",
+        "4. Nutrition & Meal Guide",
+        "5. Warm-up & Cooldown Routine",
+        "6. Pre-Match Mental Visualization",
+        "7. Hydration & Electrolyte Strategy",
+        "8. Positional Decision-Making Drills",
+        "9. Sleep & Recovery Optimization",
+        "10. Off-Season Conditioning Plan"
+    ])
 
-    if st.button("Generate Recovery Plan", key="recovery_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Injury: {injury_type}
-        Age: {age}
+    if st.button("🚀 Generate My Personalized Plan"):
+        if not api_key:
+            st.error("Cannot generate plan: API key missing.")
+        elif not goal.strip() or not diet.strip() or not training_pref.strip():
+            st.warning("Please complete required fields in Athlete Setup.")
+        elif not problem_injury.strip():
+            st.warning("Please describe your injury or problem.")
+        else:
+            system_prompt = "You are CoachBot AI, an expert youth sports coach. Prioritize safety."
+            user_context = f"Athlete: {age}yo {sport} {position}. Injury: {problem_injury}. Goal: {goal}. Diet: {diet}. Intensity: {intensity}/10. Training Preference: {training_pref}."
+            task = f"Task: {feature}. Use markdown formatting and bullet points."
 
-        Provide structured recovery plan including:
-        - Immediate Actions
-        - 1-Week Plan
-        - Hydration Guidance
-        - Sleep Recommendation
-        - Gradual Return Strategy
-        """
+            with st.spinner("Generating your personalized plan..."):
+                try:
+                    time.sleep(1)
+                    response = model.generate_content(
+                        f"{system_prompt}\n\n{user_context}\n\n{task}",
+                        generation_config=genai.types.GenerationConfig(
+                            temperature=temperature,
+                            top_p=top_p
+                        )
+                    )
 
-        st.markdown(generate_ai_response(prompt))
+                    st.success("🎉 Plan Generated Successfully!")
+                    st.markdown(response.text)
 
-# ---------------- WEEKLY PLAN TAB ----------------
+                except Exception as e:
+                    st.error(f"Generation Failed: {e}")
+
+# --- TAB 3 ---
 with tab3:
-    st.subheader("Adaptive Weekly Training Plan")
+    st.subheader("📊 Athlete Dashboard Trackers")
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Readiness Score", "85%", "+5%")
+    col2.metric("Hydration Level", "Optimal", "Maintained")
+    col3.metric("Injury Risk", "Low", "-10%")
 
-    if st.button("Generate Weekly Plan", key="weekly_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Age: {age}
-        Experience: {experience}
-        Injury: {injury_type}
-        Training Intensity: {training_intensity}/10
+    st.markdown("### Weekly Macro Tracker 🍎")
+    macro_data = pd.DataFrame({
+        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "Protein (g)": [120, 130, 120, 140, 125],
+        "Carbs (g)": [250, 300, 250, 320, 280]
+    })
 
-        Create a 7-day structured training plan.
-        For each day include:
-        - Focus Area
-        - Intensity Level
-        - Short Explanation
-        Ensure safety if injury exists.
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- STRATEGY TAB ----------------
-with tab4:
-    st.subheader("Match Strategy Generator")
-
-    if st.button("Generate Strategy", key="strategy_btn"):
-        prompt = f"""
-        Athlete Profile:
-        Sport: {sport}
-        Position: {position}
-        Experience: {experience}
-        Upcoming Match: {upcoming_match}
-
-        Provide:
-        - Tactical Role Advice
-        - Key Strength Focus
-        - Energy Management Tip
-        - Mental Preparation Cue
-        """
-
-        st.markdown(generate_ai_response(prompt))
-
-# ---------------- ASSISTANT TAB ----------------
-with tab5:
-    st.subheader("AI Performance Assistant")
-
-    user_question = st.text_input("Ask your question:", key="assistant_input")
-
-    if st.button("Ask Assistant", key="assistant_btn"):
-        if user_question.strip() != "":
-            full_prompt = f"""
-            Athlete Profile:
-            Sport: {sport}
-            Position: {position}
-            Age: {age}
-            Experience: {experience}
-            Injury: {injury_type}
-            Training Intensity: {training_intensity}/10
-
-            User Question:
-            {user_question}
-            """
-
-            answer = generate_ai_response(full_prompt)
-
-            st.session_state.chat_history.append(("You", user_question))
-            st.session_state.chat_history.append(("CoachBot", answer))
-
-    for sender, message in st.session_state.chat_history:
-        st.markdown(f"**{sender}:** {message}")
+    st.dataframe(macro_data, use_container_width=True, hide_index=True)
