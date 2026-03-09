@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-st.set_page_config(layout="wide", page_title="Rocket Simulator")
+st.set_page_config(page_title="Rocket Mission Simulator", layout="wide")
 
 # ---------------- SESSION STATE ----------------
 
@@ -23,43 +23,40 @@ if "user" not in st.session_state:
 
 if not st.session_state.logged_in:
 
-    st.title("🚀 Mission Control Login")
+    st.title("🚀 Mission Control")
 
-    username = st.text_input("Commander Name")
-    password = st.text_input("Access Code", type="password")
+    username = st.text_input("Enter Commander Name")
 
-    if st.button("Launch Console"):
+    if st.button("Enter Mission Control"):
 
-        if password == "rocket123":
+        if username != "":
             st.session_state.logged_in = True
             st.session_state.user = username
             st.rerun()
         else:
-            st.error("Invalid Access Code")
+            st.warning("Please enter your name")
 
 # ---------------- MAIN APP ----------------
 
 else:
 
-    # -------- Sidebar --------
-
     xp = st.session_state.xp
     level = xp // 200 + 1
 
+    # Sidebar
     st.sidebar.title(f"👨‍🚀 Cmdr. {st.session_state.user}")
     st.sidebar.write(f"**RANK: LVL {level}**")
     st.sidebar.progress((xp % 200)/200)
     st.sidebar.write(f"XP: {xp} / {level*200}")
-    st.sidebar.write("Level 1 Goal: Reach 15000m")
+    st.sidebar.write("Level Goal: Reach 15000m")
 
-    if st.sidebar.button("Abort Mission (Logout)"):
+    if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-# ---------------- TABS ----------------
-
+    # Tabs
     tab1, tab2, tab3 = st.tabs([
-        "🚀 Launch Sim",
+        "🚀 Launch Simulator",
         "📊 Mission Analytics",
         "🏆 Achievements"
     ])
@@ -69,7 +66,6 @@ else:
     def rocket_simulation(thrust, fuel_mass, payload_mass):
 
         g = 9.81
-
         total_mass = fuel_mass + payload_mass
 
         acceleration = (thrust / total_mass) - g
@@ -77,18 +73,18 @@ else:
         time = np.linspace(0, 300, 100)
 
         altitude = 0.5 * acceleration * time**2
-
         altitude[altitude < 0] = 0
 
-        return time, altitude
+        velocity = acceleration * time
+
+        return time, altitude, velocity
 
 # ---------------- TAB 1: LAUNCH SIM ----------------
 
     with tab1:
 
         st.title("Level 1 Simulator: Flight Cadet")
-
-        st.write("MISSION: Adjust parameters to break the altitude target of **15000 meters**")
+        st.write("Mission: Reach an altitude of **15000 meters**")
 
         col1, col2 = st.columns([1,2])
 
@@ -98,25 +94,19 @@ else:
 
             thrust = st.slider(
                 "Engine Thrust (N)",
-                1000000,
-                8000000,
-                4000000,
+                1000000, 8000000, 4000000,
                 step=100000
             )
 
             fuel = st.slider(
                 "Fuel Mass (kg)",
-                20000,
-                200000,
-                100000,
+                20000, 200000, 100000,
                 step=5000
             )
 
             payload = st.slider(
                 "Payload Mass (kg)",
-                1000,
-                50000,
-                20000,
+                1000, 50000, 20000,
                 step=1000
             )
 
@@ -126,17 +116,17 @@ else:
 
             if ignite:
 
-                time, altitude = rocket_simulation(thrust, fuel, payload)
+                time, altitude, velocity = rocket_simulation(thrust, fuel, payload)
 
                 max_altitude = max(altitude)
 
-                # XP system
+                # XP
                 st.session_state.xp += 10
 
                 if max_altitude > 15000:
                     st.session_state.xp += 50
 
-                # save mission
+                # Store mission
                 st.session_state.missions.append({
                     "thrust": thrust,
                     "fuel": fuel,
@@ -144,16 +134,14 @@ else:
                     "altitude": max_altitude
                 })
 
-                # trajectory graph
+                # Altitude graph
                 fig, ax = plt.subplots()
 
                 ax.plot(time, altitude)
-
                 ax.axhline(15000, linestyle="--")
 
                 ax.set_xlabel("Time (s)")
                 ax.set_ylabel("Altitude (m)")
-
                 ax.set_title("Flight Path Trajectory")
 
                 st.pyplot(fig)
@@ -163,6 +151,16 @@ else:
                 else:
                     st.warning("Mission failed — adjust parameters")
 
+                # Velocity graph
+                fig2, ax2 = plt.subplots()
+
+                ax2.plot(time, velocity)
+
+                ax2.set_xlabel("Time (s)")
+                ax2.set_ylabel("Velocity")
+
+                st.pyplot(fig2)
+
 # ---------------- TAB 2: ANALYTICS ----------------
 
     with tab2:
@@ -170,7 +168,7 @@ else:
         st.header("Mission Analytics")
 
         if len(st.session_state.missions) == 0:
-            st.write("No missions yet")
+            st.write("No missions recorded yet")
 
         else:
 
@@ -178,9 +176,9 @@ else:
 
             st.dataframe(df)
 
-            colA, colB = st.columns(2)
+            col1, col2 = st.columns(2)
 
-            with colA:
+            with col1:
 
                 fig1, ax1 = plt.subplots()
                 ax1.scatter(df["thrust"], df["altitude"])
@@ -196,7 +194,7 @@ else:
                 ax2.set_title("Fuel vs Altitude")
                 st.pyplot(fig2)
 
-            with colB:
+            with col2:
 
                 fig3, ax3 = plt.subplots()
                 ax3.scatter(df["payload"], df["altitude"])
@@ -231,4 +229,4 @@ else:
             st.success("🌌 Deep Space Pilot")
 
         if xp < 10:
-            st.write("No achievements unlocked yet")
+            st.write("No achievements yet")
