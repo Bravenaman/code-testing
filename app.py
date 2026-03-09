@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.express as px
 import time
 
 st.set_page_config(page_title="Rocket Mission Simulator", layout="wide")
@@ -87,7 +88,6 @@ else:
     def rocket_simulation(thrust, fuel_mass, payload_mass):
 
         g = 9.81
-
         mass = fuel_mass + payload_mass
 
         acceleration = (thrust / mass) - g
@@ -105,7 +105,6 @@ else:
     with tab1:
 
         st.title("Level 1 Simulator: Flight Cadet")
-
         st.write("Mission: Reach **15000 meters** altitude")
 
         col1, col2 = st.columns([1,2])
@@ -115,9 +114,7 @@ else:
             st.subheader("Flight Parameters")
 
             thrust = st.slider("Engine Thrust (N)",1000000,8000000,4000000,step=100000)
-
             fuel = st.slider("Fuel Mass (kg)",20000,200000,100000,step=5000)
-
             payload = st.slider("Payload Mass (kg)",1000,50000,20000,step=1000)
 
             ignite = st.button("🔥 IGNITION")
@@ -126,11 +123,16 @@ else:
 
             if ignite:
 
-                st.info("🚀 Launch in progress...")
+                st.info("🚀 Running flight simulation...")
 
                 time_values, altitude = rocket_simulation(thrust,fuel,payload)
 
-                max_altitude = max(altitude)
+                results_df = pd.DataFrame({
+                    "Time": time_values,
+                    "Altitude": altitude
+                })
+
+                max_altitude = altitude.max()
 
                 st.session_state.xp += 10
 
@@ -144,41 +146,44 @@ else:
                     "altitude": max_altitude
                 })
 
-                graph = st.empty()
+                fig = px.line(
+                    results_df,
+                    x="Time",
+                    y="Altitude",
+                    template="plotly_dark",
+                    title="🚀 Rocket Flight Trajectory",
+                    labels={
+                        "Time": "Time (seconds)",
+                        "Altitude": "Altitude (meters)"
+                    }
+                )
 
-                x_data = []
-                y_data = []
+                fig.add_hline(
+                    y=15000,
+                    line_dash="dash",
+                    line_color="red",
+                    annotation_text="Target Altitude",
+                    annotation_position="top right"
+                )
 
-                for i in range(len(time_values)):
+                max_row = results_df.loc[results_df["Altitude"].idxmax()]
 
-                    x_data.append(time_values[i])
-                    y_data.append(altitude[i])
+                fig.add_scatter(
+                    x=[max_row["Time"]],
+                    y=[max_row["Altitude"]],
+                    mode="markers+text",
+                    text=["🚀"],
+                    textposition="top center",
+                    marker=dict(size=18, color="cyan"),
+                    showlegend=False
+                )
 
-                    plt.style.use("dark_background")
+                fig.update_layout(
+                    height=500,
+                    hovermode="x unified"
+                )
 
-                    fig, ax = plt.subplots()
-
-                    ax.plot(x_data, y_data, color="cyan", linewidth=3)
-
-                    # Rocket emoji
-                    ax.text(
-                        x_data[-1],
-                        y_data[-1],
-                        "🚀",
-                        fontsize=18
-                    )
-
-                    ax.axhline(15000, linestyle="--")
-
-                    ax.set_xlabel("Time (s)")
-                    ax.set_ylabel("Altitude (m)")
-                    ax.set_title("Rocket Flight Trajectory")
-
-                    ax.grid(alpha=0.3)
-
-                    graph.pyplot(fig)
-
-                    time.sleep(0.03)
+                st.plotly_chart(fig, use_container_width=True)
 
                 if max_altitude > 15000:
                     st.success("🚀 Target altitude reached!")
