@@ -1,13 +1,22 @@
 import streamlit as st
+import numpy as np
+import pandas as pd
+import plotly.express as px
 
-# Page configuration
+# -----------------------------------
+# PAGE CONFIG
+# -----------------------------------
+
 st.set_page_config(
     page_title="Mission Control Dashboard",
     page_icon="🚀",
     layout="wide"
 )
 
-# CSS Styling (Background + Glass Panel)
+# -----------------------------------
+# CSS STYLING
+# -----------------------------------
+
 st.markdown("""
 <style>
 
@@ -18,9 +27,10 @@ st.markdown("""
     background-attachment: fixed;
 }
 
-/* Glass overlay panel */
+/* Glass login panel */
+
 .login-box {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0,0,0,0.75);
     backdrop-filter: blur(12px);
     padding: 50px;
     border-radius: 18px;
@@ -29,7 +39,8 @@ st.markdown("""
     box-shadow: 0px 0px 35px rgba(0,0,0,0.7);
 }
 
-/* Make text white */
+/* White text */
+
 h1, h2, h3, p, label {
     color: white !important;
 }
@@ -37,16 +48,20 @@ h1, h2, h3, p, label {
 </style>
 """, unsafe_allow_html=True)
 
+# -----------------------------------
+# SESSION STATE
+# -----------------------------------
 
-# Session state
 if "commander" not in st.session_state:
     st.session_state.commander = None
 
 
-# ENTRY SCREEN
+# -----------------------------------
+# ENTRY / LOGIN SCREEN
+# -----------------------------------
+
 if st.session_state.commander is None:
 
-    # Center layout
     col1, col2, col3 = st.columns([2,3,2])
 
     with col2:
@@ -66,6 +81,7 @@ if st.session_state.commander is None:
             if commander_name != "":
                 st.session_state.commander = commander_name
                 st.rerun()
+
             else:
                 st.warning("Please enter a commander name")
 
@@ -74,31 +90,34 @@ if st.session_state.commander is None:
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# MAIN DASHBOARD (placeholder for now)
+# -----------------------------------
+# MAIN DASHBOARD
+# -----------------------------------
+
 else:
 
     st.success(f"Welcome Commander {st.session_state.commander}")
 
     st.title("🚀 Rocket Mission Dashboard")
 
-    st.write("Mission systems online. Analytics loading...")
-    
-    import numpy as np
-    import pandas as pd
-    import plotly.express as px
+    st.write("Mission systems online. Analytics ready.")
 
 
-    # Sidebar Commander Panel
+# -----------------------------------
+# SIDEBAR COMMAND PANEL
+# -----------------------------------
+
     with st.sidebar:
 
         st.header(f"👨‍🚀 Cmdr. {st.session_state.commander}")
 
-        st.markdown("**RANK: LVL 1**")
+        st.markdown("**Rank: LVL 1**")
+
         st.progress(0.25)
 
         st.write("XP: 50 / 200")
 
-        st.write("Level 1 Goal: Reach 15000m")
+        st.write("Level Goal: Reach 15000m")
 
         st.divider()
 
@@ -107,11 +126,157 @@ else:
             st.rerun()
 
 
-    # Main Navigation Tabs
+# -----------------------------------
+# MAIN TABS
+# -----------------------------------
+
     tab1, tab2, tab3 = st.tabs([
         "🚀 Launch Sim",
         "📊 Mission Analytics",
         "🏆 Achievements"
     ])
+
+
+# -----------------------------------
+# TAB 1 : LAUNCH SIMULATOR
+# -----------------------------------
+
+    with tab1:
+
+        st.header("Level 1 Simulator: Flight Cadet")
+
+        st.write(
+            "MISSION: Adjust parameters to break the altitude target of **15000 meters**"
+        )
+
+        st.subheader("Flight Parameters")
+
+        thrust = st.slider(
+            "Engine Thrust (N)",
+            1000000,
+            7000000,
+            4000000
+        )
+
+        fuel = st.slider(
+            "Fuel Mass (kg)",
+            10000,
+            200000,
+            100000
+        )
+
+        payload = st.slider(
+            "Payload Mass (kg)",
+            5000,
+            50000,
+            20000
+        )
+
+
+        def simulate(thrust, fuel, payload):
+
+            time = np.linspace(0, 300, 120)
+
+            acceleration = thrust / (fuel + payload + 50000)
+
+            altitude = acceleration * time**1.5 * 50
+
+            return time, altitude
+
+
+        if st.button("🔥 IGNITION"):
+
+            time, altitude = simulate(thrust, fuel, payload)
+
+            df = pd.DataFrame({
+                "Time (s)": time,
+                "Altitude (m)": altitude
+            })
+
+            fig = px.line(
+                df,
+                x="Time (s)",
+                y="Altitude (m)",
+                title="Flight Path Trajectory"
+            )
+
+            fig.add_hline(
+                y=15000,
+                line_dash="dash",
+                line_color="red",
+                annotation_text="Target Altitude"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            if altitude.max() > 15000:
+
+                st.success("🎉 Mission Success! Target altitude reached.")
+
+            else:
+
+                st.warning("Mission Failed — Adjust parameters and try again.")
+
+
+# -----------------------------------
+# TAB 2 : MISSION ANALYTICS
+# -----------------------------------
+
+    with tab2:
+
+        st.header("Historical Mission Data")
+
+        payload_data = np.random.rand(200) * 100
+        fuel_data = np.random.rand(200) * 5000
+
+        df1 = pd.DataFrame({
+            "Payload Weight": payload_data,
+            "Fuel Consumption": fuel_data
+        })
+
+        fig1 = px.scatter(
+            df1,
+            x="Payload Weight",
+            y="Fuel Consumption",
+            title="Payload vs Fuel Consumption"
+        )
+
+        st.plotly_chart(fig1, use_container_width=True)
+
+
+        success_rate = np.random.rand(200) * 30 + 70
+        mission_cost = np.random.rand(200) * 300
+
+        df2 = pd.DataFrame({
+            "Mission Success %": success_rate,
+            "Mission Cost": mission_cost
+        })
+
+        fig2 = px.scatter(
+            df2,
+            x="Mission Success %",
+            y="Mission Cost",
+            title="Mission Success vs Cost"
+        )
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+
+# -----------------------------------
+# TAB 3 : ACHIEVEMENTS
+# -----------------------------------
+
+    with tab3:
+
+        st.header("🏆 Achievements")
+
+        st.write("🚀 First Launch")
+
+        st.write("🔥 Break 15000m Altitude")
+
+        st.write("⛽ Fuel Efficiency Expert")
+
         st.write("🛰 Payload Master")
+
         st.write("🏅 Elite Commander")
+        
