@@ -20,13 +20,13 @@ st.markdown("""
 
 /* Glass overlay panel */
 .login-box {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
     padding: 50px;
     border-radius: 18px;
     text-align: center;
     color: white;
-    box-shadow: 0px 0px 30px rgba(0,0,0,0.6);
+    box-shadow: 0px 0px 35px rgba(0,0,0,0.7);
 }
 
 /* Make text white */
