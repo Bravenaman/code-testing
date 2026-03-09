@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-st.set_page_config(page_title="Rocket Mission Simulator", layout="wide")
+st.set_page_config(layout="wide", page_title="Rocket Simulator")
 
 # ---------------- SESSION STATE ----------------
 
@@ -16,51 +16,47 @@ if "xp" not in st.session_state:
 if "missions" not in st.session_state:
     st.session_state.missions = []
 
+if "user" not in st.session_state:
+    st.session_state.user = ""
+
 # ---------------- LOGIN SCREEN ----------------
 
 if not st.session_state.logged_in:
 
-    st.title("🚀 Rocket Mission Control")
+    st.title("🚀 Mission Control Login")
 
     username = st.text_input("Commander Name")
     password = st.text_input("Access Code", type="password")
 
-    login = st.button("Launch Console")
-
-    if login:
+    if st.button("Launch Console"):
 
         if password == "rocket123":
             st.session_state.logged_in = True
-            st.success("Access Granted Commander!")
+            st.session_state.user = username
             st.rerun()
-
         else:
-            st.error("Access Denied")
+            st.error("Invalid Access Code")
 
 # ---------------- MAIN APP ----------------
 
 else:
 
-    # ---------- SIDEBAR ----------
-
-    st.sidebar.title(f"👨‍🚀 Cmdr. {username}")
+    # -------- Sidebar --------
 
     xp = st.session_state.xp
     level = xp // 200 + 1
 
-    st.sidebar.write(f"RANK: LVL {level}")
-    st.sidebar.progress((xp % 200) / 200)
+    st.sidebar.title(f"👨‍🚀 Cmdr. {st.session_state.user}")
+    st.sidebar.write(f"**RANK: LVL {level}**")
+    st.sidebar.progress((xp % 200)/200)
+    st.sidebar.write(f"XP: {xp} / {level*200}")
+    st.sidebar.write("Level 1 Goal: Reach 15000m")
 
-    st.sidebar.write(f"XP: {xp} / {(level*200)}")
-    st.sidebar.write("Level Goal: Reach 15000m")
-
-    logout = st.sidebar.button("Abort Mission (Logout)")
-
-    if logout:
+    if st.sidebar.button("Abort Mission (Logout)"):
         st.session_state.logged_in = False
         st.rerun()
 
-    # ---------- TABS ----------
+# ---------------- TABS ----------------
 
     tab1, tab2, tab3 = st.tabs([
         "🚀 Launch Sim",
@@ -68,15 +64,15 @@ else:
         "🏆 Achievements"
     ])
 
-# ---------------- PHYSICS FUNCTION ----------------
+# ---------------- ROCKET PHYSICS MODEL ----------------
 
-    def simulate_flight(thrust, fuel, payload):
+    def rocket_simulation(thrust, fuel_mass, payload_mass):
 
         g = 9.81
 
-        mass = fuel + payload
+        total_mass = fuel_mass + payload_mass
 
-        acceleration = thrust / mass - g
+        acceleration = (thrust / total_mass) - g
 
         time = np.linspace(0, 300, 100)
 
@@ -84,17 +80,15 @@ else:
 
         altitude[altitude < 0] = 0
 
-        velocity = acceleration * time
+        return time, altitude
 
-        return time, altitude, velocity
-
-# ---------------- TAB 1 LAUNCH SIM ----------------
+# ---------------- TAB 1: LAUNCH SIM ----------------
 
     with tab1:
 
         st.title("Level 1 Simulator: Flight Cadet")
 
-        st.write("MISSION: Reach altitude target of **15000 meters**")
+        st.write("MISSION: Adjust parameters to break the altitude target of **15000 meters**")
 
         col1, col2 = st.columns([1,2])
 
@@ -102,29 +96,47 @@ else:
 
             st.subheader("Flight Parameters")
 
-            thrust = st.slider("Engine Thrust (N)",1000000,8000000,4000000)
+            thrust = st.slider(
+                "Engine Thrust (N)",
+                1000000,
+                8000000,
+                4000000,
+                step=100000
+            )
 
-            fuel = st.slider("Fuel Mass (kg)",20000,200000,100000)
+            fuel = st.slider(
+                "Fuel Mass (kg)",
+                20000,
+                200000,
+                100000,
+                step=5000
+            )
 
-            payload = st.slider("Payload Mass (kg)",1000,50000,20000)
+            payload = st.slider(
+                "Payload Mass (kg)",
+                1000,
+                50000,
+                20000,
+                step=1000
+            )
 
-            launch = st.button("🔥 IGNITION")
+            ignite = st.button("🔥 IGNITION")
 
         with col2:
 
-            if launch:
+            if ignite:
 
-                time, altitude, velocity = simulate_flight(thrust,fuel,payload)
+                time, altitude = rocket_simulation(thrust, fuel, payload)
 
                 max_altitude = max(altitude)
 
-                # XP reward
+                # XP system
                 st.session_state.xp += 10
 
                 if max_altitude > 15000:
                     st.session_state.xp += 50
 
-                # store mission
+                # save mission
                 st.session_state.missions.append({
                     "thrust": thrust,
                     "fuel": fuel,
@@ -142,31 +154,23 @@ else:
                 ax.set_xlabel("Time (s)")
                 ax.set_ylabel("Altitude (m)")
 
+                ax.set_title("Flight Path Trajectory")
+
                 st.pyplot(fig)
 
                 if max_altitude > 15000:
-                    st.success("🎉 Target altitude reached!")
+                    st.success("🚀 Target altitude reached!")
                 else:
-                    st.warning("Increase thrust or reduce payload")
+                    st.warning("Mission failed — adjust parameters")
 
-                # velocity graph
-                fig2, ax2 = plt.subplots()
-
-                ax2.plot(time, velocity)
-
-                ax2.set_xlabel("Time (s)")
-                ax2.set_ylabel("Velocity")
-
-                st.pyplot(fig2)
-
-# ---------------- TAB 2 ANALYTICS ----------------
+# ---------------- TAB 2: ANALYTICS ----------------
 
     with tab2:
 
         st.header("Mission Analytics")
 
         if len(st.session_state.missions) == 0:
-            st.write("No missions recorded yet")
+            st.write("No missions yet")
 
         else:
 
@@ -174,48 +178,39 @@ else:
 
             st.dataframe(df)
 
-            st.subheader("Thrust vs Altitude")
+            colA, colB = st.columns(2)
 
-            fig, ax = plt.subplots()
+            with colA:
 
-            ax.scatter(df["thrust"], df["altitude"])
+                fig1, ax1 = plt.subplots()
+                ax1.scatter(df["thrust"], df["altitude"])
+                ax1.set_xlabel("Thrust")
+                ax1.set_ylabel("Altitude")
+                ax1.set_title("Thrust vs Altitude")
+                st.pyplot(fig1)
 
-            ax.set_xlabel("Thrust")
-            ax.set_ylabel("Altitude")
+                fig2, ax2 = plt.subplots()
+                ax2.scatter(df["fuel"], df["altitude"])
+                ax2.set_xlabel("Fuel Mass")
+                ax2.set_ylabel("Altitude")
+                ax2.set_title("Fuel vs Altitude")
+                st.pyplot(fig2)
 
-            st.pyplot(fig)
+            with colB:
 
-            st.subheader("Fuel vs Altitude")
+                fig3, ax3 = plt.subplots()
+                ax3.scatter(df["payload"], df["altitude"])
+                ax3.set_xlabel("Payload")
+                ax3.set_ylabel("Altitude")
+                ax3.set_title("Payload vs Altitude")
+                st.pyplot(fig3)
 
-            fig2, ax2 = plt.subplots()
+                fig4, ax4 = plt.subplots()
+                ax4.hist(df["altitude"])
+                ax4.set_title("Altitude Distribution")
+                st.pyplot(fig4)
 
-            ax2.scatter(df["fuel"], df["altitude"])
-
-            ax2.set_xlabel("Fuel")
-            ax2.set_ylabel("Altitude")
-
-            st.pyplot(fig2)
-
-            st.subheader("Payload vs Altitude")
-
-            fig3, ax3 = plt.subplots()
-
-            ax3.scatter(df["payload"], df["altitude"])
-
-            ax3.set_xlabel("Payload")
-            ax3.set_ylabel("Altitude")
-
-            st.pyplot(fig3)
-
-            st.subheader("Altitude Distribution")
-
-            fig4, ax4 = plt.subplots()
-
-            ax4.hist(df["altitude"])
-
-            st.pyplot(fig4)
-
-# ---------------- TAB 3 ACHIEVEMENTS ----------------
+# ---------------- TAB 3: ACHIEVEMENTS ----------------
 
     with tab3:
 
@@ -236,4 +231,4 @@ else:
             st.success("🌌 Deep Space Pilot")
 
         if xp < 10:
-            st.write("No achievements yet")
+            st.write("No achievements unlocked yet")
