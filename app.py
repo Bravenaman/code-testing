@@ -14,16 +14,16 @@ st.set_page_config(
 )
 
 # -----------------------------------
-# CSS STYLING
+# CSS STYLING (UPDATED UI COLORS)
 # -----------------------------------
 
 st.markdown("""
 <style>
 
-/* BLACK BACKGROUND */
+/* DARK SPACE BACKGROUND */
 
 .stApp {
-    background-color: #000000;
+    background: linear-gradient(180deg,#000000,#020617,#020617);
 }
 
 /* Glass login panel */
@@ -36,6 +36,25 @@ st.markdown("""
     text-align: center;
     color: white;
     box-shadow: 0px 0px 35px rgba(0,0,0,0.7);
+}
+
+/* Sidebar style */
+
+section[data-testid="stSidebar"] {
+    background-color: #020617;
+}
+
+/* Button styling */
+
+.stButton>button {
+    background-color: #0ea5e9;
+    color: white;
+    border-radius: 8px;
+    border: none;
+}
+
+.stButton>button:hover {
+    background-color: #0284c7;
 }
 
 /* White text */
@@ -295,10 +314,6 @@ else:
         )
 
         st.plotly_chart(fig5, use_container_width=True)
-
-        # -----------------------------------
-        # HEATMAP
-        # -----------------------------------
 
         st.subheader("Mission Variable Correlation Heatmap")
 
