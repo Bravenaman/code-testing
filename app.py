@@ -220,47 +220,139 @@ else:
 # -----------------------------------
 # TAB 2 : MISSION ANALYTICS
 # -----------------------------------
+with tab2:
 
-    with tab2:
+    st.header("📊 Mission Analytics")
 
-        st.header("Historical Mission Data")
+    st.write("Historical mission analysis and performance metrics")
 
-        payload_data = np.random.rand(200) * 100
-        fuel_data = np.random.rand(200) * 5000
+    import plotly.express as px
+    import numpy as np
+    import pandas as pd
 
-        df1 = pd.DataFrame({
-            "Payload Weight": payload_data,
-            "Fuel Consumption": fuel_data
-        })
+    # Generate synthetic dataset
+    np.random.seed(42)
 
-        fig1 = px.scatter(
-            df1,
-            x="Payload Weight",
-            y="Fuel Consumption",
-            title="Payload vs Fuel Consumption"
-        )
+    missions = 200
 
-        st.plotly_chart(fig1, use_container_width=True)
+    payload = np.random.randint(5000, 50000, missions)
+    fuel = payload * np.random.uniform(0.05, 0.15, missions)
+
+    mission_cost = np.random.randint(50, 300, missions)
+    mission_result = np.random.choice(["Success", "Failure"], missions)
+
+    mission_duration = np.random.randint(5, 40, missions)
+    distance = mission_duration * np.random.uniform(20000, 60000, missions)
+
+    crew_size = np.random.randint(1, 8, missions)
+    success_percent = np.random.uniform(60, 98, missions)
+
+    scientific_yield = np.random.randint(10, 100, missions)
+
+    df = pd.DataFrame({
+        "Payload Weight": payload,
+        "Fuel Consumption": fuel,
+        "Mission Cost": mission_cost,
+        "Mission Result": mission_result,
+        "Mission Duration": mission_duration,
+        "Distance from Earth": distance,
+        "Crew Size": crew_size,
+        "Mission Success %": success_percent,
+        "Scientific Yield": scientific_yield
+    })
 
 
-        success_rate = np.random.rand(200) * 30 + 70
-        mission_cost = np.random.rand(200) * 300
+    # --------------------------------
+    # 1. SCATTER PLOT
+    # Payload vs Fuel
+    # --------------------------------
 
-        df2 = pd.DataFrame({
-            "Mission Success %": success_rate,
-            "Mission Cost": mission_cost
-        })
+    st.subheader("Payload Weight vs Fuel Consumption")
 
-        fig2 = px.scatter(
-            df2,
-            x="Mission Success %",
-            y="Mission Cost",
-            title="Mission Success vs Cost"
-        )
+    fig1 = px.scatter(
+        df,
+        x="Payload Weight",
+        y="Fuel Consumption",
+        color="Mission Result",
+        title="Payload vs Fuel Consumption"
+    )
 
-        st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True)
 
 
+    # --------------------------------
+    # 2. BAR CHART
+    # Mission Cost Success vs Failure
+    # --------------------------------
+
+    st.subheader("Mission Cost: Success vs Failure")
+
+    cost_df = df.groupby("Mission Result")["Mission Cost"].mean().reset_index()
+
+    fig2 = px.bar(
+        cost_df,
+        x="Mission Result",
+        y="Mission Cost",
+        color="Mission Result",
+        title="Average Mission Cost by Outcome"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+
+    # --------------------------------
+    # 3. LINE CHART
+    # Duration vs Distance
+    # --------------------------------
+
+    st.subheader("Mission Duration vs Distance from Earth")
+
+    duration_df = df.sort_values("Mission Duration")
+
+    fig3 = px.line(
+        duration_df,
+        x="Mission Duration",
+        y="Distance from Earth",
+        title="Mission Duration vs Distance"
+    )
+
+    st.plotly_chart(fig3, use_container_width=True)
+
+
+    # --------------------------------
+    # 4. BOX PLOT
+    # Crew Size vs Success %
+    # --------------------------------
+
+    st.subheader("Crew Size vs Mission Success %")
+
+    fig4 = px.box(
+        df,
+        x="Crew Size",
+        y="Mission Success %",
+        title="Crew Size vs Mission Success Rate"
+    )
+
+    st.plotly_chart(fig4, use_container_width=True)
+
+
+    # --------------------------------
+    # 5. SCATTER PLOT
+    # Scientific Yield vs Mission Cost
+    # --------------------------------
+
+    st.subheader("Scientific Yield vs Mission Cost")
+
+    fig5 = px.scatter(
+        df,
+        x="Mission Cost",
+        y="Scientific Yield",
+        color="Crew Size",
+        title="Scientific Yield vs Mission Cost"
+    )
+
+    st.plotly_chart(fig5, use_container_width=True)
+    
 # -----------------------------------
 # TAB 3 : ACHIEVEMENTS
 # -----------------------------------
