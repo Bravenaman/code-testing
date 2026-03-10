@@ -297,14 +297,14 @@ else:
         st.plotly_chart(fig5, use_container_width=True)
 
         # -----------------------------------
-        # HEATMAP (ADDED)
+        # HEATMAP
         # -----------------------------------
 
         st.subheader("Mission Variable Correlation Heatmap")
 
         import plotly.figure_factory as ff
 
-        corr = df.corr(numeric_only=True)
+        corr = df.corr(numeric_only=True).round(2)
 
         fig_heatmap = ff.create_annotated_heatmap(
             z=corr.values,
