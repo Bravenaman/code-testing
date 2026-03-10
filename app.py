@@ -70,17 +70,6 @@ transform:scale(1.05);
 box-shadow:0 0 15px rgba(99,102,241,0.8);
 }
 
-.stTabs [data-baseweb="tab"] {
-font-size:18px;
-font-weight:600;
-color:white;
-}
-
-.stTabs [aria-selected="true"] {
-background: linear-gradient(90deg,#3b82f6,#8b5cf6);
-border-radius:10px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -112,9 +101,10 @@ with st.sidebar:
 # TABS
 # -----------------------------------
 
-tab1, tab2 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🚀 Launch Simulator",
-    "📊 Mission Analytics"
+    "📊 Mission Analytics",
+    "📚 Data Exploration"
 ])
 
 # -----------------------------------
@@ -238,5 +228,73 @@ with tab2:
     fig_heatmap = px.imshow(corr, text_auto=True, color_continuous_scale="viridis")
 
     st.plotly_chart(fig_heatmap, use_container_width=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# -----------------------------------
+# TAB 3 : DATA EXPLORATION
+# -----------------------------------
+
+with tab3:
+
+    st.markdown('<div class="glass">', unsafe_allow_html=True)
+
+    st.header("📚 Data Exploration: Physics Behind Rocket Launches")
+
+    st.write("""
+Rocket launches follow **Newton’s Second Law of Motion**:
+
+**Force = Mass × Acceleration**
+
+In rockets, the main upward force is **thrust**, while forces like **drag** and the **weight of the payload** resist motion.
+Understanding how these variables interact helps scientists design efficient launch systems.
+""")
+
+    st.subheader("🚀 Thrust")
+    st.write("""
+Thrust is the force produced by rocket engines when fuel burns and exhaust gases are expelled at extremely high speeds.  
+This force pushes the rocket upward against gravity.  
+Large launch vehicles produce millions of Newtons of thrust to lift spacecraft into orbit.
+""")
+
+    st.subheader("📦 Payload")
+    st.write("""
+Payload is the cargo a rocket carries into space.  
+This can include satellites, scientific instruments, astronauts, or supplies.
+
+Heavier payloads increase the rocket’s total mass, which reduces acceleration unless additional thrust is provided.
+""")
+
+    st.subheader("🌬 Drag")
+    st.write("""
+Drag is air resistance that slows objects moving through the atmosphere.
+
+During launch, rockets must push through dense air near Earth’s surface.  
+As altitude increases, the atmosphere becomes thinner, reducing drag and allowing the rocket to accelerate faster.
+""")
+
+    st.subheader("Guiding Questions")
+
+    st.write("""
+**How does adding more payload affect altitude?**
+
+Adding payload increases total mass. If thrust remains constant, acceleration decreases, meaning the rocket climbs slower and may not reach the same altitude.
+
+**How does increasing thrust affect launch success?**
+
+Higher thrust increases upward force. If thrust exceeds gravity and drag, the rocket accelerates upward more effectively and can carry heavier payloads.
+
+**Does lower drag at higher altitudes improve speed?**
+
+Yes. Thinner atmosphere means less resistance, allowing rockets to reach higher speeds more efficiently.
+
+**How long would it take to reach orbit?**
+
+Most rockets reach orbit in about **8–10 minutes** after launch. They must reach speeds around **7.8 km/s** to stay in low Earth orbit.
+
+**Can simulation values be compared with real missions?**
+
+Yes. Engineers often use simulations to test rocket performance before real launches. While simplified models do not include every factor, they demonstrate the core physics behind real aerospace engineering.
+""")
 
     st.markdown('</div>', unsafe_allow_html=True)
