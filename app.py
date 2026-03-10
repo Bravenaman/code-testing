@@ -1,239 +1,280 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-import time
 
-st.set_page_config(page_title="Rocket Mission Simulator", layout="wide")
+# -----------------------------------
+# PAGE CONFIG
+# -----------------------------------
 
-# ---------- SPACE BACKGROUND ----------
+st.set_page_config(
+    page_title="Mission Control Dashboard",
+    page_icon="🚀",
+    layout="wide"
+)
 
-page_bg = """
+# -----------------------------------
+# CSS STYLING
+# -----------------------------------
+
+st.markdown("""
 <style>
-[data-testid="stAppViewContainer"]{
-background-image: url("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa");
-background-size: cover;
-background-position: center;
+
+/* BLACK BACKGROUND */
+
+.stApp {
+    background-color: #000000;
 }
 
-[data-testid="stHeader"]{
-background: rgba(0,0,0,0);
+/* Glass login panel */
+
+.login-box {
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(12px);
+    padding: 50px;
+    border-radius: 18px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 0px 35px rgba(0,0,0,0.7);
 }
 
-[data-testid="stSidebar"]{
-background: rgba(0,0,0,0.7);
+/* White text */
+
+h1, h2, h3, p, label {
+    color: white !important;
 }
+
 </style>
-"""
+""", unsafe_allow_html=True)
 
-st.markdown(page_bg, unsafe_allow_html=True)
+# -----------------------------------
+# SESSION STATE
+# -----------------------------------
 
-# ---------- SESSION STATE ----------
+if "commander" not in st.session_state:
+    st.session_state.commander = None
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
 
-if "xp" not in st.session_state:
-    st.session_state.xp = 0
+# -----------------------------------
+# ENTRY / LOGIN SCREEN
+# -----------------------------------
 
-if "missions" not in st.session_state:
-    st.session_state.missions = []
+if st.session_state.commander is None:
 
-if "user" not in st.session_state:
-    st.session_state.user = ""
+    col1, col2, col3 = st.columns([2,3,2])
 
-# ---------- LOGIN ----------
+    with col2:
 
-if not st.session_state.logged_in:
+        st.markdown('<div class="login-box">', unsafe_allow_html=True)
 
-    st.title("🚀 Mission Control")
+        st.title("🚀 Mission Control")
 
-    username = st.text_input("Enter Commander Name")
+        st.subheader("Rocket Launch Visualization System")
 
-    if st.button("Enter Mission Control"):
+        st.write("Enter your Commander Name to access the system")
 
-        if username != "":
-            st.session_state.logged_in = True
-            st.session_state.user = username
-            st.rerun()
+        commander_name = st.text_input("Commander Name")
 
-        else:
-            st.warning("Please enter your name")
+        if st.button("Launch Dashboard"):
 
-# ---------- MAIN APP ----------
+            if commander_name != "":
+                st.session_state.commander = commander_name
+                st.rerun()
+
+            else:
+                st.warning("Please enter a commander name")
+
+        st.caption("Authorized Personnel Only")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# -----------------------------------
+# MAIN DASHBOARD
+# -----------------------------------
 
 else:
 
-    xp = st.session_state.xp
-    level = xp // 200 + 1
+    st.success(f"Welcome Commander {st.session_state.commander}")
 
-    st.sidebar.title(f"👨‍🚀 Cmdr. {st.session_state.user}")
-    st.sidebar.write(f"RANK: LVL {level}")
-    st.sidebar.progress((xp % 200)/200)
-    st.sidebar.write(f"XP: {xp}")
+    st.title("🚀 Rocket Mission Dashboard")
 
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    st.write("Mission systems online. Analytics ready.")
+
+
+# -----------------------------------
+# SIDEBAR COMMAND PANEL
+# -----------------------------------
+
+    with st.sidebar:
+
+        st.header(f"👨‍🚀 Cmdr. {st.session_state.commander}")
+
+        st.markdown("**Rank: LVL 1**")
+
+        st.progress(0.25)
+
+        st.write("XP: 50 / 200")
+
+        st.write("Level Goal: Reach 15000m")
+
+        st.divider()
+
+        if st.button("Abort Mission (Logout)"):
+            st.session_state.commander = None
+            st.rerun()
+
+
+# -----------------------------------
+# MAIN TABS
+# -----------------------------------
 
     tab1, tab2, tab3 = st.tabs([
-        "🚀 Launch Simulator",
+        "🚀 Launch Sim",
         "📊 Mission Analytics",
         "🏆 Achievements"
     ])
 
-# ---------- PHYSICS MODEL ----------
 
-    def rocket_simulation(thrust, fuel_mass, payload_mass):
-
-        g = 9.81
-        mass = fuel_mass + payload_mass
-
-        acceleration = (thrust / mass) - g
-
-        time_values = np.linspace(0, 300, 100)
-
-        altitude = 0.5 * acceleration * time_values**2
-
-        altitude[altitude < 0] = 0
-
-        return time_values, altitude
-
-# ---------- TAB 1: LAUNCH SIM ----------
+# -----------------------------------
+# TAB 1 : LAUNCH SIMULATOR
+# -----------------------------------
 
     with tab1:
 
-        st.title("Level 1 Simulator: Flight Cadet")
-        st.write("Mission: Reach **15000 meters** altitude")
+        st.header("Level 1 Simulator: Flight Cadet")
 
-        col1, col2 = st.columns([1,2])
+        st.write(
+            "MISSION: Adjust parameters to break the altitude target of **15000 meters**"
+        )
 
-        with col1:
+        st.subheader("Flight Parameters")
 
-            st.subheader("Flight Parameters")
+        thrust = st.slider(
+            "Engine Thrust (N)",
+            1000000,
+            7000000,
+            4000000
+        )
 
-            thrust = st.slider("Engine Thrust (N)",1000000,8000000,4000000,step=100000)
-            fuel = st.slider("Fuel Mass (kg)",20000,200000,100000,step=5000)
-            payload = st.slider("Payload Mass (kg)",1000,50000,20000,step=1000)
+        fuel = st.slider(
+            "Fuel Mass (kg)",
+            10000,
+            200000,
+            100000
+        )
 
-            ignite = st.button("🔥 IGNITION")
+        payload = st.slider(
+            "Payload Mass (kg)",
+            5000,
+            50000,
+            20000
+        )
 
-        with col2:
 
-            if ignite:
+        def simulate(thrust, fuel, payload):
 
-                st.info("🚀 Running flight simulation...")
+            time = np.linspace(0, 300, 120)
 
-                time_values, altitude = rocket_simulation(thrust,fuel,payload)
+            acceleration = thrust / (fuel + payload + 50000)
 
-                results_df = pd.DataFrame({
-                    "Time": time_values,
-                    "Altitude": altitude
-                })
+            altitude = acceleration * time**1.5 * 50
 
-                max_altitude = altitude.max()
+            return time, altitude
 
-                st.session_state.xp += 10
 
-                if max_altitude > 15000:
-                    st.session_state.xp += 50
+        if st.button("🔥 IGNITION"):
 
-                st.session_state.missions.append({
-                    "thrust": thrust,
-                    "fuel": fuel,
-                    "payload": payload,
-                    "altitude": max_altitude
-                })
+            time, altitude = simulate(thrust, fuel, payload)
 
-                fig = px.line(
-                    results_df,
-                    x="Time",
-                    y="Altitude",
-                    template="plotly_dark",
-                    title="🚀 Rocket Flight Trajectory",
-                    labels={
-                        "Time": "Time (seconds)",
-                        "Altitude": "Altitude (meters)"
-                    }
-                )
+            df = pd.DataFrame({
+                "Time (s)": time,
+                "Altitude (m)": altitude
+            })
 
-                fig.add_hline(
-                    y=15000,
-                    line_dash="dash",
-                    line_color="red",
-                    annotation_text="Target Altitude",
-                    annotation_position="top right"
-                )
+            fig = px.line(
+                df,
+                x="Time (s)",
+                y="Altitude (m)",
+                title="Flight Path Trajectory"
+            )
 
-                max_row = results_df.loc[results_df["Altitude"].idxmax()]
+            fig.add_hline(
+                y=15000,
+                line_dash="dash",
+                line_color="red",
+                annotation_text="Target Altitude"
+            )
 
-                fig.add_scatter(
-                    x=[max_row["Time"]],
-                    y=[max_row["Altitude"]],
-                    mode="markers+text",
-                    text=["🚀"],
-                    textposition="top center",
-                    marker=dict(size=18, color="cyan"),
-                    showlegend=False
-                )
+            st.plotly_chart(fig, use_container_width=True)
 
-                fig.update_layout(
-                    height=500,
-                    hovermode="x unified"
-                )
+            if altitude.max() > 15000:
 
-                st.plotly_chart(fig, use_container_width=True)
+                st.success("🎉 Mission Success! Target altitude reached.")
 
-                if max_altitude > 15000:
-                    st.success("🚀 Target altitude reached!")
-                else:
-                    st.warning("Mission failed — adjust parameters")
+            else:
 
-# ---------- TAB 2 ANALYTICS ----------
+                st.warning("Mission Failed — Adjust parameters and try again.")
+
+
+# -----------------------------------
+# TAB 2 : MISSION ANALYTICS
+# -----------------------------------
 
     with tab2:
 
-        st.header("Mission Analytics")
+        st.header("Historical Mission Data")
 
-        if len(st.session_state.missions) == 0:
-            st.write("No missions yet")
+        payload_data = np.random.rand(200) * 100
+        fuel_data = np.random.rand(200) * 5000
 
-        else:
+        df1 = pd.DataFrame({
+            "Payload Weight": payload_data,
+            "Fuel Consumption": fuel_data
+        })
 
-            df = pd.DataFrame(st.session_state.missions)
+        fig1 = px.scatter(
+            df1,
+            x="Payload Weight",
+            y="Fuel Consumption",
+            title="Payload vs Fuel Consumption"
+        )
 
-            st.dataframe(df)
+        st.plotly_chart(fig1, use_container_width=True)
 
-            fig1, ax1 = plt.subplots()
 
-            ax1.scatter(df["thrust"], df["altitude"])
+        success_rate = np.random.rand(200) * 30 + 70
+        mission_cost = np.random.rand(200) * 300
 
-            ax1.set_xlabel("Thrust")
-            ax1.set_ylabel("Altitude")
-            ax1.set_title("Thrust vs Altitude")
+        df2 = pd.DataFrame({
+            "Mission Success %": success_rate,
+            "Mission Cost": mission_cost
+        })
 
-            st.pyplot(fig1)
+        fig2 = px.scatter(
+            df2,
+            x="Mission Success %",
+            y="Mission Cost",
+            title="Mission Success vs Cost"
+        )
 
-# ---------- TAB 3 ACHIEVEMENTS ----------
+        st.plotly_chart(fig2, use_container_width=True)
+
+
+# -----------------------------------
+# TAB 3 : ACHIEVEMENTS
+# -----------------------------------
 
     with tab3:
 
-        st.header("Achievements")
+        st.header("🏆 Achievements")
 
-        xp = st.session_state.xp
+        st.write("🚀 First Launch")
 
-        if xp >= 10:
-            st.success("🚀 First Launch")
+        st.write("🔥 Break 15000m Altitude")
 
-        if xp >= 100:
-            st.success("🛰 Mission Specialist")
+        st.write("⛽ Fuel Efficiency Expert")
 
-        if xp >= 300:
-            st.success("🌕 Orbital Commander")
+        st.write("🛰 Payload Master")
 
-        if xp >= 600:
-            st.success("🌌 Deep Space Pilot")
-
-        if xp < 10:
-            st.write("No achievements yet")
+        st.write("🏅 Elite Commander")
