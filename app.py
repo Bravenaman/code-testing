@@ -14,53 +14,101 @@ st.set_page_config(
 )
 
 # -----------------------------------
-# CSS STYLING (UPDATED UI COLORS)
+# COLORFUL UI STYLING
 # -----------------------------------
 
 st.markdown("""
 <style>
 
-/* DARK SPACE BACKGROUND */
+/* Animated Gradient Background */
 
 .stApp {
-    background: linear-gradient(180deg,#000000,#020617,#020617);
+background: linear-gradient(-45deg,#0f172a,#020617,#1e293b,#020617);
+background-size: 400% 400%;
+animation: gradientBG 20s ease infinite;
+color:white;
 }
 
-/* Glass login panel */
-
-.login-box {
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(12px);
-    padding: 50px;
-    border-radius: 18px;
-    text-align: center;
-    color: white;
-    box-shadow: 0px 0px 35px rgba(0,0,0,0.7);
+@keyframes gradientBG {
+0% {background-position:0% 50%;}
+50% {background-position:100% 50%;}
+100% {background-position:0% 50%;}
 }
 
-/* Sidebar style */
+/* Sidebar */
 
 section[data-testid="stSidebar"] {
-    background-color: #020617;
+background: linear-gradient(180deg,#020617,#0f172a);
+border-right:1px solid rgba(255,255,255,0.1);
 }
 
-/* Button styling */
+/* Glass Cards */
+
+.glass {
+background: rgba(255,255,255,0.05);
+border-radius:20px;
+padding:25px;
+backdrop-filter: blur(10px);
+border:1px solid rgba(255,255,255,0.1);
+box-shadow:0 8px 30px rgba(0,0,0,0.6);
+}
+
+/* Gradient Titles */
+
+.gradient-text {
+font-size:40px;
+font-weight:700;
+background: linear-gradient(90deg,#38bdf8,#818cf8,#c084fc);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* Buttons */
 
 .stButton>button {
-    background-color: #0ea5e9;
-    color: white;
-    border-radius: 8px;
-    border: none;
+background: linear-gradient(90deg,#3b82f6,#8b5cf6);
+color:white;
+border:none;
+padding:10px 25px;
+border-radius:10px;
+font-weight:600;
+transition:0.3s;
 }
 
 .stButton>button:hover {
-    background-color: #0284c7;
+transform:scale(1.05);
+box-shadow:0 0 15px rgba(99,102,241,0.8);
 }
 
-/* White text */
+/* Tabs */
 
-h1, h2, h3, p, label {
-    color: white !important;
+.stTabs [data-baseweb="tab"] {
+font-size:18px;
+font-weight:600;
+color:white;
+}
+
+.stTabs [aria-selected="true"] {
+background: linear-gradient(90deg,#3b82f6,#8b5cf6);
+border-radius:10px;
+}
+
+/* Slider */
+
+.stSlider > div {
+padding:5px;
+}
+
+/* Input */
+
+input {
+border-radius:10px !important;
+}
+
+/* Success / Warning boxes */
+
+.stAlert {
+border-radius:15px;
 }
 
 </style>
@@ -74,35 +122,37 @@ if "commander" not in st.session_state:
     st.session_state.commander = None
 
 # -----------------------------------
-# ENTRY / LOGIN SCREEN
+# LOGIN SCREEN
 # -----------------------------------
 
 if st.session_state.commander is None:
 
-    col1, col2, col3 = st.columns([2,3,2])
+    col1,col2,col3 = st.columns([2,3,2])
 
     with col2:
 
-        st.markdown('<div class="login-box">', unsafe_allow_html=True)
+        st.markdown('<div class="glass">',unsafe_allow_html=True)
 
-        st.title("🚀 Mission Control")
+        st.markdown('<div class="gradient-text">🚀 Mission Control</div>',unsafe_allow_html=True)
+
         st.subheader("Rocket Launch Visualization System")
 
         st.write("Enter your Commander Name to access the system")
 
         commander_name = st.text_input("Commander Name")
 
-        if st.button("Launch Dashboard"):
+        if st.button("Launch Dashboard 🚀"):
 
             if commander_name != "":
                 st.session_state.commander = commander_name
                 st.rerun()
+
             else:
                 st.warning("Please enter a commander name")
 
         st.caption("Authorized Personnel Only")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>',unsafe_allow_html=True)
 
 # -----------------------------------
 # MAIN DASHBOARD
@@ -110,19 +160,22 @@ if st.session_state.commander is None:
 
 else:
 
+    st.markdown('<div class="gradient-text">🚀 Rocket Mission Dashboard</div>',unsafe_allow_html=True)
+
     st.success(f"Welcome Commander {st.session_state.commander}")
-    st.title("🚀 Rocket Mission Dashboard")
+
     st.write("Mission systems online. Analytics ready.")
 
-    # -----------------------------------
-    # SIDEBAR
-    # -----------------------------------
+# -----------------------------------
+# SIDEBAR
+# -----------------------------------
 
     with st.sidebar:
 
-        st.header(f"👨‍🚀 Cmdr. {st.session_state.commander}")
+        st.markdown("## 👨‍🚀 Commander Panel")
 
-        st.markdown("**Rank: LVL 1**")
+        st.markdown(f"**Commander:** {st.session_state.commander}")
+
         st.progress(0.25)
 
         st.write("XP: 50 / 200")
@@ -130,211 +183,144 @@ else:
 
         st.divider()
 
-        if st.button("Abort Mission (Logout)"):
-            st.session_state.commander = None
+        if st.button("Abort Mission 🚫"):
+            st.session_state.commander=None
             st.rerun()
 
-    # -----------------------------------
-    # TABS
-    # -----------------------------------
+# -----------------------------------
+# TABS
+# -----------------------------------
 
-    tab1, tab2, tab3 = st.tabs([
-        "🚀 Launch Sim",
+    tab1,tab2,tab3 = st.tabs([
+        "🚀 Launch Simulator",
         "📊 Mission Analytics",
         "🏆 Achievements"
     ])
 
-    # -----------------------------------
-    # TAB 1 : LAUNCH SIMULATOR
-    # -----------------------------------
+# -----------------------------------
+# TAB 1 : LAUNCH SIM
+# -----------------------------------
 
     with tab1:
 
+        st.markdown('<div class="glass">',unsafe_allow_html=True)
+
         st.header("Level 1 Simulator: Flight Cadet")
 
-        st.write(
-            "MISSION: Adjust parameters to break the altitude target of **15000 meters**"
-        )
+        st.write("MISSION: Adjust parameters to break the altitude target of **15000 meters**")
 
-        st.subheader("Flight Parameters")
+        thrust = st.slider("Engine Thrust (N)",1000000,7000000,4000000)
 
-        thrust = st.slider(
-            "Engine Thrust (N)",
-            1000000,
-            7000000,
-            4000000
-        )
+        fuel = st.slider("Fuel Mass (kg)",10000,200000,100000)
 
-        fuel = st.slider(
-            "Fuel Mass (kg)",
-            10000,
-            200000,
-            100000
-        )
+        payload = st.slider("Payload Mass (kg)",5000,50000,20000)
 
-        payload = st.slider(
-            "Payload Mass (kg)",
-            5000,
-            50000,
-            20000
-        )
+        def simulate(thrust,fuel,payload):
 
-        def simulate(thrust, fuel, payload):
+            time = np.linspace(0,300,120)
 
-            time = np.linspace(0, 300, 120)
+            acceleration = thrust/(fuel+payload+50000)
 
-            acceleration = thrust / (fuel + payload + 50000)
+            altitude = acceleration*time**1.5*50
 
-            altitude = acceleration * time**1.5 * 50
-
-            return time, altitude
+            return time,altitude
 
         if st.button("🔥 IGNITION"):
 
-            time, altitude = simulate(thrust, fuel, payload)
+            time,altitude = simulate(thrust,fuel,payload)
 
-            df_launch = pd.DataFrame({
-                "Time (s)": time,
-                "Altitude (m)": altitude
+            df_launch=pd.DataFrame({
+            "Time (s)":time,
+            "Altitude (m)":altitude
             })
 
-            fig = px.line(
-                df_launch,
-                x="Time (s)",
-                y="Altitude (m)",
-                title="Flight Path Trajectory"
-            )
+            fig=px.line(df_launch,x="Time (s)",y="Altitude (m)",title="Flight Path Trajectory")
 
-            fig.add_hline(
-                y=15000,
-                line_dash="dash",
-                line_color="red",
-                annotation_text="Target Altitude"
-            )
+            fig.add_hline(y=15000,line_dash="dash",line_color="red",annotation_text="Target Altitude")
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig,use_container_width=True)
 
-            if altitude.max() > 15000:
+            if altitude.max()>15000:
                 st.success("🎉 Mission Success! Target altitude reached.")
             else:
                 st.warning("Mission Failed — Adjust parameters and try again.")
 
-    # -----------------------------------
-    # TAB 2 : MISSION ANALYTICS
-    # -----------------------------------
+        st.markdown('</div>',unsafe_allow_html=True)
+
+# -----------------------------------
+# TAB 2 : ANALYTICS
+# -----------------------------------
 
     with tab2:
 
-        st.header("📊 Mission Analytics")
-        st.write("Historical mission analysis and performance metrics")
+        st.markdown('<div class="glass">',unsafe_allow_html=True)
+
+        st.header("Mission Analytics")
 
         np.random.seed(42)
 
-        missions = 200
+        missions=200
 
-        payload = np.random.randint(5000, 50000, missions)
-        fuel = payload * np.random.uniform(0.05, 0.15, missions)
+        payload=np.random.randint(5000,50000,missions)
+        fuel=payload*np.random.uniform(0.05,0.15,missions)
 
-        mission_cost = np.random.randint(50, 300, missions)
-        mission_result = np.random.choice(["Success", "Failure"], missions)
+        mission_cost=np.random.randint(50,300,missions)
+        mission_result=np.random.choice(["Success","Failure"],missions)
 
-        mission_duration = np.random.randint(5, 40, missions)
-        distance = mission_duration * np.random.uniform(20000, 60000, missions)
+        mission_duration=np.random.randint(5,40,missions)
+        distance=mission_duration*np.random.uniform(20000,60000,missions)
 
-        crew_size = np.random.randint(1, 8, missions)
-        success_percent = np.random.uniform(60, 98, missions)
+        crew_size=np.random.randint(1,8,missions)
+        success_percent=np.random.uniform(60,98,missions)
 
-        scientific_yield = np.random.randint(10, 100, missions)
+        scientific_yield=np.random.randint(10,100,missions)
 
-        df = pd.DataFrame({
-            "Payload Weight": payload,
-            "Fuel Consumption": fuel,
-            "Mission Cost": mission_cost,
-            "Mission Result": mission_result,
-            "Mission Duration": mission_duration,
-            "Distance from Earth": distance,
-            "Crew Size": crew_size,
-            "Mission Success %": success_percent,
-            "Scientific Yield": scientific_yield
+        df=pd.DataFrame({
+        "Payload Weight":payload,
+        "Fuel Consumption":fuel,
+        "Mission Cost":mission_cost,
+        "Mission Result":mission_result,
+        "Mission Duration":mission_duration,
+        "Distance from Earth":distance,
+        "Crew Size":crew_size,
+        "Mission Success %":success_percent,
+        "Scientific Yield":scientific_yield
         })
 
-        st.subheader("Payload Weight vs Fuel Consumption")
+        fig1=px.scatter(df,x="Payload Weight",y="Fuel Consumption",color="Mission Result")
+        st.plotly_chart(fig1,use_container_width=True)
 
-        fig1 = px.scatter(
-            df,
-            x="Payload Weight",
-            y="Fuel Consumption",
-            color="Mission Result"
-        )
+        cost_df=df.groupby("Mission Result")["Mission Cost"].mean().reset_index()
 
-        st.plotly_chart(fig1, use_container_width=True)
+        fig2=px.bar(cost_df,x="Mission Result",y="Mission Cost",color="Mission Result")
+        st.plotly_chart(fig2,use_container_width=True)
 
-        st.subheader("Mission Cost: Success vs Failure")
+        duration_df=df.sort_values("Mission Duration")
 
-        cost_df = df.groupby("Mission Result")["Mission Cost"].mean().reset_index()
+        fig3=px.line(duration_df,x="Mission Duration",y="Distance from Earth")
+        st.plotly_chart(fig3,use_container_width=True)
 
-        fig2 = px.bar(
-            cost_df,
-            x="Mission Result",
-            y="Mission Cost",
-            color="Mission Result"
-        )
+        fig4=px.box(df,x="Crew Size",y="Mission Success %")
+        st.plotly_chart(fig4,use_container_width=True)
 
-        st.plotly_chart(fig2, use_container_width=True)
+        fig5=px.scatter(df,x="Mission Cost",y="Scientific Yield",color="Crew Size")
+        st.plotly_chart(fig5,use_container_width=True)
 
-        st.subheader("Mission Duration vs Distance from Earth")
+        corr=df.corr(numeric_only=True).round(2)
 
-        duration_df = df.sort_values("Mission Duration")
+        fig_heatmap=px.imshow(corr,text_auto=True,color_continuous_scale="viridis")
 
-        fig3 = px.line(
-            duration_df,
-            x="Mission Duration",
-            y="Distance from Earth"
-        )
+        st.plotly_chart(fig_heatmap,use_container_width=True)
 
-        st.plotly_chart(fig3, use_container_width=True)
+        st.markdown('</div>',unsafe_allow_html=True)
 
-        st.subheader("Crew Size vs Mission Success %")
-
-        fig4 = px.box(
-            df,
-            x="Crew Size",
-            y="Mission Success %"
-        )
-
-        st.plotly_chart(fig4, use_container_width=True)
-
-        st.subheader("Scientific Yield vs Mission Cost")
-
-        fig5 = px.scatter(
-            df,
-            x="Mission Cost",
-            y="Scientific Yield",
-            color="Crew Size"
-        )
-
-        st.plotly_chart(fig5, use_container_width=True)
-
-        st.subheader("Mission Variable Correlation Heatmap")
-
-        import plotly.figure_factory as ff
-
-        corr = df.corr(numeric_only=True).round(2)
-
-        fig_heatmap = ff.create_annotated_heatmap(
-            z=corr.values,
-            x=list(corr.columns),
-            y=list(corr.index),
-            colorscale="Viridis"
-        )
-
-        st.plotly_chart(fig_heatmap, use_container_width=True)
-
-    # -----------------------------------
-    # TAB 3 : ACHIEVEMENTS
-    # -----------------------------------
+# -----------------------------------
+# TAB 3 : ACHIEVEMENTS
+# -----------------------------------
 
     with tab3:
+
+        st.markdown('<div class="glass">',unsafe_allow_html=True)
 
         st.header("🏆 Achievements")
 
@@ -343,3 +329,5 @@ else:
         st.write("⛽ Fuel Efficiency Expert")
         st.write("🛰 Payload Master")
         st.write("🏅 Elite Commander")
+
+        st.markdown('</div>',unsafe_allow_html=True)
