@@ -296,6 +296,25 @@ else:
 
         st.plotly_chart(fig5, use_container_width=True)
 
+        # -----------------------------------
+        # HEATMAP (ADDED)
+        # -----------------------------------
+
+        st.subheader("Mission Variable Correlation Heatmap")
+
+        import plotly.figure_factory as ff
+
+        corr = df.corr(numeric_only=True)
+
+        fig_heatmap = ff.create_annotated_heatmap(
+            z=corr.values,
+            x=list(corr.columns),
+            y=list(corr.index),
+            colorscale="Viridis"
+        )
+
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+
     # -----------------------------------
     # TAB 3 : ACHIEVEMENTS
     # -----------------------------------
