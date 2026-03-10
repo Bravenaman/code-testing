@@ -220,6 +220,7 @@ else:
 # -----------------------------------
 # TAB 2 : MISSION ANALYTICS
 # -----------------------------------
+
 with tab2:
 
     st.header("📊 Mission Analytics")
