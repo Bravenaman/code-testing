@@ -276,25 +276,25 @@ As altitude increases, the atmosphere becomes thinner, reducing drag and allowin
     st.subheader("Guiding Questions")
 
     st.write("""
-**How does adding more payload affect altitude?**
+**1. How does adding more payload affect altitude?**
 
-Adding payload increases total mass. If thrust remains constant, acceleration decreases, meaning the rocket climbs slower and may not reach the same altitude.
+Ans. Adding payload increases total mass. If thrust remains constant, acceleration decreases, meaning the rocket climbs slower and may not reach the same altitude.
 
-**How does increasing thrust affect launch success?**
+**2. How does increasing thrust affect launch success?**
 
-Higher thrust increases upward force. If thrust exceeds gravity and drag, the rocket accelerates upward more effectively and can carry heavier payloads.
+Ans. Higher thrust increases upward force. If thrust exceeds gravity and drag, the rocket accelerates upward more effectively and can carry heavier payloads.
 
-**Does lower drag at higher altitudes improve speed?**
+**3. Does lower drag at higher altitudes improve speed?**
 
-Yes. Thinner atmosphere means less resistance, allowing rockets to reach higher speeds more efficiently.
+Ans. Yes. Thinner atmosphere means less resistance, allowing rockets to reach higher speeds more efficiently.
 
-**How long would it take to reach orbit?**
+**4. How long would it take to reach orbit?**
 
-Most rockets reach orbit in about **8–10 minutes** after launch. They must reach speeds around **7.8 km/s** to stay in low Earth orbit.
+Ans. Most rockets reach orbit in about **8–10 minutes** after launch. They must reach speeds around **7.8 km/s** to stay in low Earth orbit.
 
-**Can simulation values be compared with real missions?**
+**5. Can simulation values be compared with real missions?**
 
-Yes. Engineers often use simulations to test rocket performance before real launches. While simplified models do not include every factor, they demonstrate the core physics behind real aerospace engineering.
+Ans. Yes. Engineers often use simulations to test rocket performance before real launches. While simplified models do not include every factor, they demonstrate the core physics behind real aerospace engineering.
 """)
 
     st.markdown('</div>', unsafe_allow_html=True)
