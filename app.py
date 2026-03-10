@@ -54,7 +54,6 @@ h1, h2, h3, p, label {
 if "commander" not in st.session_state:
     st.session_state.commander = None
 
-
 # -----------------------------------
 # ENTRY / LOGIN SCREEN
 # -----------------------------------
@@ -68,7 +67,6 @@ if st.session_state.commander is None:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
 
         st.title("🚀 Mission Control")
-
         st.subheader("Rocket Launch Visualization System")
 
         st.write("Enter your Commander Name to access the system")
@@ -80,14 +78,12 @@ if st.session_state.commander is None:
             if commander_name != "":
                 st.session_state.commander = commander_name
                 st.rerun()
-
             else:
                 st.warning("Please enter a commander name")
 
         st.caption("Authorized Personnel Only")
 
         st.markdown('</div>', unsafe_allow_html=True)
-
 
 # -----------------------------------
 # MAIN DASHBOARD
@@ -96,26 +92,21 @@ if st.session_state.commander is None:
 else:
 
     st.success(f"Welcome Commander {st.session_state.commander}")
-
     st.title("🚀 Rocket Mission Dashboard")
-
     st.write("Mission systems online. Analytics ready.")
 
-
-# -----------------------------------
-# SIDEBAR COMMAND PANEL
-# -----------------------------------
+    # -----------------------------------
+    # SIDEBAR
+    # -----------------------------------
 
     with st.sidebar:
 
         st.header(f"👨‍🚀 Cmdr. {st.session_state.commander}")
 
         st.markdown("**Rank: LVL 1**")
-
         st.progress(0.25)
 
         st.write("XP: 50 / 200")
-
         st.write("Level Goal: Reach 15000m")
 
         st.divider()
@@ -124,10 +115,9 @@ else:
             st.session_state.commander = None
             st.rerun()
 
-
-# -----------------------------------
-# MAIN TABS
-# -----------------------------------
+    # -----------------------------------
+    # TABS
+    # -----------------------------------
 
     tab1, tab2, tab3 = st.tabs([
         "🚀 Launch Sim",
@@ -135,10 +125,9 @@ else:
         "🏆 Achievements"
     ])
 
-
-# -----------------------------------
-# TAB 1 : LAUNCH SIMULATOR
-# -----------------------------------
+    # -----------------------------------
+    # TAB 1 : LAUNCH SIMULATOR
+    # -----------------------------------
 
     with tab1:
 
@@ -171,7 +160,6 @@ else:
             20000
         )
 
-
         def simulate(thrust, fuel, payload):
 
             time = np.linspace(0, 300, 120)
@@ -182,18 +170,17 @@ else:
 
             return time, altitude
 
-
         if st.button("🔥 IGNITION"):
 
             time, altitude = simulate(thrust, fuel, payload)
 
-            df = pd.DataFrame({
+            df_launch = pd.DataFrame({
                 "Time (s)": time,
                 "Altitude (m)": altitude
             })
 
             fig = px.line(
-                df,
+                df_launch,
                 x="Time (s)",
                 y="Altitude (m)",
                 title="Flight Path Trajectory"
@@ -209,29 +196,19 @@ else:
             st.plotly_chart(fig, use_container_width=True)
 
             if altitude.max() > 15000:
-
                 st.success("🎉 Mission Success! Target altitude reached.")
-
             else:
-
                 st.warning("Mission Failed — Adjust parameters and try again.")
 
-
-# -----------------------------------
-# TAB 2 : MISSION ANALYTICS
-# -----------------------------------
+    # -----------------------------------
+    # TAB 2 : MISSION ANALYTICS
+    # -----------------------------------
 
     with tab2:
 
-         st.header("📊 Mission Analytics")
+        st.header("📊 Mission Analytics")
+        st.write("Historical mission analysis and performance metrics")
 
-         st.write("Historical mission analysis and performance metrics")
-
-        import plotly.express as px
-        import numpy as np
-        import pandas as pd
-
-        # Generate synthetic dataset
         np.random.seed(42)
 
         missions = 200
@@ -262,29 +239,16 @@ else:
             "Scientific Yield": scientific_yield
         })
 
-
-        # --------------------------------
-        # 1. SCATTER PLOT
-        # Payload vs Fuel
-        # --------------------------------
-
         st.subheader("Payload Weight vs Fuel Consumption")
 
         fig1 = px.scatter(
             df,
             x="Payload Weight",
             y="Fuel Consumption",
-            color="Mission Result",
-            title="Payload vs Fuel Consumption"
+            color="Mission Result"
         )
 
         st.plotly_chart(fig1, use_container_width=True)
-
-
-        # --------------------------------
-        # 2. BAR CHART
-        # Mission Cost Success vs Failure
-        # --------------------------------
 
         st.subheader("Mission Cost: Success vs Failure")
 
@@ -294,17 +258,10 @@ else:
             cost_df,
             x="Mission Result",
             y="Mission Cost",
-            color="Mission Result",
-            title="Average Mission Cost by Outcome"
+            color="Mission Result"
         )
 
         st.plotly_chart(fig2, use_container_width=True)
-
-
-        # --------------------------------
-        # 3. LINE CHART
-        # Duration vs Distance
-        # --------------------------------
 
         st.subheader("Mission Duration vs Distance from Earth")
 
@@ -313,34 +270,20 @@ else:
         fig3 = px.line(
             duration_df,
             x="Mission Duration",
-            y="Distance from Earth",
-            title="Mission Duration vs Distance"
+            y="Distance from Earth"
         )
 
         st.plotly_chart(fig3, use_container_width=True)
-
-
-        # --------------------------------
-        # 4. BOX PLOT
-        # Crew Size vs Success %
-        # --------------------------------
 
         st.subheader("Crew Size vs Mission Success %")
 
         fig4 = px.box(
             df,
             x="Crew Size",
-            y="Mission Success %",
-            title="Crew Size vs Mission Success Rate"
+            y="Mission Success %"
         )
 
         st.plotly_chart(fig4, use_container_width=True)
-
-
-        # --------------------------------
-        # 5. SCATTER PLOT
-        # Scientific Yield vs Mission Cost
-        # --------------------------------
 
         st.subheader("Scientific Yield vs Mission Cost")
 
@@ -348,26 +291,21 @@ else:
             df,
             x="Mission Cost",
             y="Scientific Yield",
-            color="Crew Size",
-            title="Scientific Yield vs Mission Cost"
+            color="Crew Size"
         )
-    
+
         st.plotly_chart(fig5, use_container_width=True)
-    
-# -----------------------------------
-# TAB 3 : ACHIEVEMENTS
-# -----------------------------------
+
+    # -----------------------------------
+    # TAB 3 : ACHIEVEMENTS
+    # -----------------------------------
 
     with tab3:
 
         st.header("🏆 Achievements")
 
         st.write("🚀 First Launch")
-
         st.write("🔥 Break 15000m Altitude")
-
         st.write("⛽ Fuel Efficiency Expert")
-
         st.write("🛰 Payload Master")
-
         st.write("🏅 Elite Commander")
