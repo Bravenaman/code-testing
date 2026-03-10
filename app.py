@@ -222,15 +222,17 @@ else:
 # -----------------------------------
 
     with tab2:
-        
-        st.header("📊 Mission Analytics")
-        st.write("Historical mission analysis and performance metrics")
-        import plotly.express as px
-        import numpy as np
-        import pandas as pd
-        # Generate synthetic dataset
 
-np.random.seed(42)
+         st.header("📊 Mission Analytics")
+
+    st.write("Historical mission analysis and performance metrics")
+
+    import plotly.express as px
+    import numpy as np
+    import pandas as pd
+
+    # Generate synthetic dataset
+    np.random.seed(42)
 
     missions = 200
 
@@ -351,7 +353,6 @@ np.random.seed(42)
     )
 
     st.plotly_chart(fig5, use_container_width=True)
-    
 # -----------------------------------
 # TAB 3 : ACHIEVEMENTS
 # -----------------------------------
