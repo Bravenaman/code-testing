@@ -353,6 +353,7 @@ else:
     )
 
     st.plotly_chart(fig5, use_container_width=True)
+    
 # -----------------------------------
 # TAB 3 : ACHIEVEMENTS
 # -----------------------------------
