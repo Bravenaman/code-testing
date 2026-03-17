@@ -1,6 +1,0 @@
-Mission ID,Mission Name,Launch Date,Target Name,Mission Type,Distance from Earth,Mission Duration,Mission Cost,Scientific Yield,Crew Size,Mission Success,Fuel Consumption,Payload Weight,Launch Vehicle
-1,Apollo 11,1969-07-16,Moon,Crewed,384400,8,25,90,3,Success,950,45,Saturn V
-2,Voyager 1,1977-09-05,Interstellar,Probe,21000000000,3650,250,95,0,Success,1200,15,Titan IIIE
-3,Mars Pathfinder,1996-12-04,Mars,Robotic,225000000,210,280,80,0,Success,800,20,Delta II
-4,Mars Climate Orbiter,1998-12-11,Mars,Robotic,225000000,300,330,70,0,Failure,850,22,Atlas II
-5,ISS Supply 1,2015-04-14,ISS,Cargo,400,30,120,60,0,Success,500,30,Falcon 9
