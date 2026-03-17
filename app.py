@@ -21,10 +21,17 @@ h1, h2, h3 { color: #F9FAFB; }
 # ------------------ LOAD DATA ------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("blackfriday.csv")
-    return df
+    try:
+        df = pd.read_csv("blackfriday.csv")
+        return df
+    except FileNotFoundError:
+        st.error("Dataset not found. Please upload the file.")
+        return None
 
 df = load_data()
+
+if df is None:
+    st.stop()
 
 # ------------------ PREPROCESSING ------------------
 df['Age_Code'] = df['Age'].astype('category').cat.codes
