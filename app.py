@@ -254,6 +254,8 @@ elif page == "📊 Customer Segmentation":
 
     except Exception as e:
         st.error(f"Something broke: {e}")
+
+
 # =========================================================
 # 🛒 PRODUCT INTELLIGENCE
 # =========================================================
