@@ -201,38 +201,52 @@ elif page == "📈 Customer Insights":
 # =========================================================
 # 🎯 SEGMENTATION
 # =========================================================
-elif page == "🎯 Segmentation":
-    st.subheader("Customer Segmentation (K-Means)")
+elif page == "🎯 Customer Segmentation":
+    st.title("2. Interactive Clustering & Segmentation")
 
-    features = ['Age_Code', 'Purchase']
+    # 🔥 Slider for K
+    k = st.slider("⚙️ Select Number of Customer Segments (k):", 2, 10, 3)
+
+    # ------------------ FEATURE SELECTION ------------------
+    X = df[['Age_Code', 'Purchase']]
+
+    # 🔥 Scale data (VERY IMPORTANT)
+    from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
-    X = scaler.fit_transform(df[features])
+    X_scaled = scaler.fit_transform(X)
 
-    # Elbow Method
-    inertia = []
-    K = range(1, 8)
-    for k in K:
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(X)
-        inertia.append(kmeans.inertia_)
+    # 🔥 Apply KMeans dynamically
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    df['Cluster'] = kmeans.fit_predict(X_scaled)
 
-    fig_elbow = px.line(x=K, y=inertia, markers=True, title="Elbow Method")
-    st.plotly_chart(fig_elbow, use_container_width=True)
+    # ------------------ LABEL CLUSTERS ------------------
+    cluster_means = df.groupby('Cluster')['Purchase'].mean().sort_values()
 
-    kmeans = KMeans(n_clusters=3, random_state=42)
-    df['Cluster'] = kmeans.fit_predict(X)
+    labels = {}
+    for i, cluster in enumerate(cluster_means.index):
+        if i == 0:
+            labels[cluster] = "Discount Lovers"
+        elif i == len(cluster_means) - 1:
+            labels[cluster] = "Premium Buyers"
+        else:
+            labels[cluster] = "Average Buyers"
 
-    segment_map = {
-        0: "Budget Buyers",
-        1: "Regular Customers",
-        2: "High Value Customers"
-    }
-    df['Segment'] = df['Cluster'].map(segment_map)
+    df['Buyer_Persona'] = df['Cluster'].map(labels)
 
-    fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
-                     title="Customer Segments")
+    # ------------------ PLOT ------------------
+    import plotly.express as px
+
+    fig = px.scatter(
+        df,
+        x='Age',
+        y='Purchase',
+        color='Buyer_Persona',
+        title=f"Customer Clusters (k={k}) based on Age and Purchase Habits",
+        opacity=0.7
+    )
+
     st.plotly_chart(fig, use_container_width=True)
-
 # =========================================================
 # 🛒 PRODUCT INTELLIGENCE
 # =========================================================
