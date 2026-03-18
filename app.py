@@ -136,8 +136,11 @@ elif page == "🎯 Segmentation":
 elif page == "🛒 Product Intelligence":
     st.subheader("Market Basket Analysis")
 
-    basket = df.groupby(['User_ID', 'Product_Category_1'])['Product_Category_1'] \
-               .count().unstack().fillna(0)
+    # 🔥 LIMIT DATA (VERY IMPORTANT)
+    sample_df = df.sample(n=5000, random_state=42)
+
+    basket = sample_df.groupby(['User_ID', 'Product_Category_1'])['Product_Category_1'] \
+                     .count().unstack().fillna(0)
 
     basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 
@@ -157,8 +160,7 @@ elif page == "🛒 Product Intelligence":
                 f"(Lift: {row['lift']:.2f})"
             )
     else:
-        st.warning("No strong rules found. Try lowering support.")
-
+        st.warning("No strong rules found.")
 # =========================================================
 # 🚨 ANOMALIES
 # =========================================================
