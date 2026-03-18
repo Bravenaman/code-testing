@@ -209,30 +209,61 @@ elif page == "🎯 Segmentation":
     scaler = StandardScaler()
     X = scaler.fit_transform(df[features])
 
-    # Elbow Method
+    # ------------------ ELBOW METHOD ------------------
+    st.markdown("### 📉 Elbow Method (Find Optimal K)")
+
     inertia = []
     K = range(1, 8)
-    for k in K:
-        kmeans = KMeans(n_clusters=k, random_state=42)
+    for k_val in K:
+        kmeans = KMeans(n_clusters=k_val, random_state=42, n_init=10)
         kmeans.fit(X)
         inertia.append(kmeans.inertia_)
 
     fig_elbow = px.line(x=K, y=inertia, markers=True, title="Elbow Method")
     st.plotly_chart(fig_elbow, use_container_width=True)
 
-    kmeans = KMeans(n_clusters=3, random_state=42)
+    # ------------------ INTERACTIVE K ------------------
+    st.markdown("### ⚙️ Choose Number of Segments")
+
+    k = st.slider("Select number of clusters (k):", 2, 7, 3)
+
+    # ------------------ APPLY KMEANS ------------------
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     df['Cluster'] = kmeans.fit_predict(X)
 
-    segment_map = {
-        0: "Budget Buyers",
-        1: "Regular Customers",
-        2: "High Value Customers"
-    }
-    df['Segment'] = df['Cluster'].map(segment_map)
+    # ------------------ DYNAMIC LABELING ------------------
+    cluster_means = df.groupby('Cluster')['Purchase'].mean().sort_values()
 
-    fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
-                     title="Customer Segments")
+    labels = {}
+    for i, cluster in enumerate(cluster_means.index):
+        if i == 0:
+            labels[cluster] = "Budget Buyers"
+        elif i == len(cluster_means) - 1:
+            labels[cluster] = "High Value Customers"
+        else:
+            labels[cluster] = "Regular Customers"
+
+    df['Segment'] = df['Cluster'].map(labels)
+
+    # ------------------ VISUALIZATION ------------------
+    st.markdown("### 📊 Customer Segments Visualization")
+
+    fig = px.scatter(
+        df,
+        x="Age",
+        y="Purchase",
+        color="Segment",
+        title=f"Customer Segments (k={k})",
+        opacity=0.7
+    )
+
     st.plotly_chart(fig, use_container_width=True)
+
+    # ------------------ SUMMARY TABLE ------------------
+    st.markdown("### 📋 Segment Summary")
+
+    summary = df.groupby('Segment')['Purchase'].mean().reset_index()
+    st.dataframe(summary)
 
 # ------------------ PRODUCT INTELLIGENCE ------------------
 elif page == "🛒 Product Intelligence":
