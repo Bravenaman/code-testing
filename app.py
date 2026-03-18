@@ -201,10 +201,6 @@ elif page == "📈 Customer Insights":
 # =========================================================
 # 🎯 SEGMENTATION
 # =========================================================
-# ------------------ PROJECT OVERVIEW ------------------
-if page == "📌 Project Overview":
-    st.title("Project Overview")
-    st.write("Welcome to the dashboard")
 
 # ------------------ CUSTOMER SEGMENTATION ------------------
 elif page == "📊 Customer Segmentation":
