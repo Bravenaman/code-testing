@@ -202,49 +202,46 @@ elif page == "📈 Customer Insights":
 # 🎯 SEGMENTATION
 # =========================================================
 
-# ------------------ CUSTOMER SEGMENTATION ------------------
 elif page == "📊 Customer Segmentation":
     st.title("2. Interactive Clustering & Segmentation")
 
-    # 🔥 FORCE DEBUG OUTPUT
-    st.write("Segmentation tab is active")
+    # Feature selection
+    X = df[['Age_Code', 'Purchase']]
 
-    try:
-        # ------------------ DATA CHECK ------------------
-        st.write("Columns:", df.columns)
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-        # 🔥 Ensure Age_Code exists
-        df['Age_Code'] = df['Age'].astype('category').cat.codes
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    df['Cluster'] = kmeans.fit_predict(X_scaled)
 
-        # ------------------ SLIDER ------------------
-        k = st.slider("⚙️ Select Number of Customer Segments (k):", 2, 10, 3)
+    # Label clusters
+    cluster_means = df.groupby('Cluster')['Purchase'].mean().sort_values()
 
-        # ------------------ FEATURES ------------------
-        X = df[['Age_Code', 'Purchase']]
+    labels = {}
+    for i, cluster in enumerate(cluster_means.index):
+        if i == 0:
+            labels[cluster] = "Discount Lovers"
+        elif i == len(cluster_means) - 1:
+            labels[cluster] = "Premium Buyers"
+        else:
+            labels[cluster] = "Average Buyers"
 
-        # ------------------ MODEL ------------------
-        from sklearn.cluster import KMeans
-        model = KMeans(n_clusters=k, random_state=42, n_init=10)
+    df['Buyer_Persona'] = df['Cluster'].map(labels)
 
-        df['Cluster'] = model.fit_predict(X)
+    # Plot
+    import plotly.express as px
 
-        st.success("Clustering successful")
+    fig = px.scatter(
+        df,
+        x='Age',
+        y='Purchase',
+        color='Buyer_Persona',
+        title="Customer Segments based on Age and Purchase"
+    )
 
-        # ------------------ VISUAL ------------------
-        import plotly.express as px
-
-        fig = px.scatter(
-            df,
-            x='Age',
-            y='Purchase',
-            color=df['Cluster'].astype(str),
-            title=f"Customer Clusters (k={k})"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        st.error(f"ERROR: {e}")
+    st.plotly_chart(fig)
 
 # ------------------ PRODUCT INTELLIGENCE ------------------
 elif page == "🛒 Product Intelligence":
