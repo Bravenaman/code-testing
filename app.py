@@ -202,46 +202,37 @@ elif page == "📈 Customer Insights":
 # 🎯 SEGMENTATION
 # =========================================================
 
-elif page == "📊 Customer Segmentation":
-    st.title("2. Interactive Clustering & Segmentation")
+elif page == "🎯 Segmentation":
+    st.subheader("Customer Segmentation (K-Means)")
 
-    # Feature selection
-    X = df[['Age_Code', 'Purchase']]
-
-    from sklearn.preprocessing import StandardScaler
+    features = ['Age_Code', 'Purchase']
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    X = scaler.fit_transform(df[features])
 
-    from sklearn.cluster import KMeans
+    # Elbow Method
+    inertia = []
+    K = range(1, 8)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(X)
+        inertia.append(kmeans.inertia_)
+
+    fig_elbow = px.line(x=K, y=inertia, markers=True, title="Elbow Method")
+    st.plotly_chart(fig_elbow, use_container_width=True)
+
     kmeans = KMeans(n_clusters=3, random_state=42)
-    df['Cluster'] = kmeans.fit_predict(X_scaled)
+    df['Cluster'] = kmeans.fit_predict(X)
 
-    # Label clusters
-    cluster_means = df.groupby('Cluster')['Purchase'].mean().sort_values()
+    segment_map = {
+        0: "Budget Buyers",
+        1: "Regular Customers",
+        2: "High Value Customers"
+    }
+    df['Segment'] = df['Cluster'].map(segment_map)
 
-    labels = {}
-    for i, cluster in enumerate(cluster_means.index):
-        if i == 0:
-            labels[cluster] = "Discount Lovers"
-        elif i == len(cluster_means) - 1:
-            labels[cluster] = "Premium Buyers"
-        else:
-            labels[cluster] = "Average Buyers"
-
-    df['Buyer_Persona'] = df['Cluster'].map(labels)
-
-    # Plot
-    import plotly.express as px
-
-    fig = px.scatter(
-        df,
-        x='Age',
-        y='Purchase',
-        color='Buyer_Persona',
-        title="Customer Segments based on Age and Purchase"
-    )
-
-    st.plotly_chart(fig)
+    fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
+                     title="Customer Segments")
+    st.plotly_chart(fig, use_container_width=True)
 
 # ------------------ PRODUCT INTELLIGENCE ------------------
 elif page == "🛒 Product Intelligence":
