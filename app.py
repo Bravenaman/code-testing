@@ -136,31 +136,61 @@ elif page == "🎯 Segmentation":
 elif page == "🛒 Product Intelligence":
     st.subheader("Market Basket Analysis")
 
-    # 🔥 LIMIT DATA (VERY IMPORTANT)
-    sample_df = df.sample(n=5000, random_state=42)
+    st.write("Discover which product categories are commonly purchased together.")
 
-    basket = sample_df.groupby(['User_ID', 'Product_Category_1'])['Product_Category_1'] \
-                     .count().unstack().fillna(0)
+    try:
+        # 🔥 Step 1: Sample data (prevents crash)
+        sample_df = df.sample(n=5000, random_state=42)
 
-    basket = basket.applymap(lambda x: 1 if x > 0 else 0)
+        # 🔥 Step 2: Use ALL product categories
+        basket_data = sample_df[['User_ID', 
+                                 'Product_Category_1', 
+                                 'Product_Category_2', 
+                                 'Product_Category_3']]
 
-    frequent = apriori(basket, min_support=0.05, use_colnames=True)
-    rules = association_rules(frequent, metric="lift", min_threshold=1)
+        # Convert into long format
+        basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product').dropna()
 
-    if not rules.empty:
-        top_rules = rules.sort_values("lift", ascending=False).head(5)
+        # 🔥 Step 3: Create basket matrix
+        basket = basket_data.groupby(['User_ID', 'Product'])['Product'] \
+                            .count().unstack().fillna(0)
 
-        st.dataframe(top_rules[['antecedents', 'consequents',
-                                'support', 'confidence', 'lift']])
+        # Convert to binary
+        basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 
-        st.markdown("### Key Insights")
-        for _, row in top_rules.iterrows():
-            st.write(
-                f"If a user buys {list(row['antecedents'])}, they are likely to also buy {list(row['consequents'])} "
-                f"(Lift: {row['lift']:.2f})"
-            )
-    else:
-        st.warning("No strong rules found.")
+        # 🔥 Step 4: Apriori (lower threshold so rules actually appear)
+        frequent = apriori(basket, min_support=0.01, use_colnames=True)
+
+        # If no itemsets found → stop early
+        if frequent.empty:
+            st.warning("Not enough frequent itemsets found. Try increasing sample size.")
+            st.stop()
+
+        # 🔥 Step 5: Generate rules
+        rules = association_rules(frequent, metric="lift", min_threshold=0.8)
+
+        # 🔥 Step 6: Show results ONLY if they exist
+        if not rules.empty:
+            st.success(f"Found {len(rules)} association rules!")
+
+            top_rules = rules.sort_values("lift", ascending=False).head(5)
+
+            st.dataframe(top_rules[['antecedents', 'consequents',
+                                    'support', 'confidence', 'lift']])
+
+            st.markdown("### 🔍 Key Insights")
+
+            for _, row in top_rules.iterrows():
+                st.write(
+                    f"If a user buys {list(row['antecedents'])}, "
+                    f"they are likely to also buy {list(row['consequents'])} "
+                    f"(Lift: {row['lift']:.2f}, Confidence: {row['confidence']:.2f})"
+                )
+        else:
+            st.warning("No strong associations found. Try adjusting support levels.")
+
+    except Exception as e:
+        st.error(f"Error in Product Intelligence: {e}")
 # =========================================================
 # 🚨 ANOMALIES
 # =========================================================
