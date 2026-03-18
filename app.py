@@ -22,7 +22,7 @@ h1, h2, h3 { color: #F9FAFB; }
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("blackfriday.csv")
+        df = pd.read_csv("BlackFriday.csv")
         return df
     except FileNotFoundError:
         st.error("Dataset not found. Please upload the file.")
