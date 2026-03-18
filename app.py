@@ -201,59 +201,59 @@ elif page == "📈 Customer Insights":
 # =========================================================
 # 🎯 SEGMENTATION
 # =========================================================
+# ------------------ PROJECT OVERVIEW ------------------
+if page == "📌 Project Overview":
+    st.title("Project Overview")
+    st.write("Welcome to the dashboard")
+
+# ------------------ CUSTOMER SEGMENTATION ------------------
 elif page == "📊 Customer Segmentation":
     st.title("2. Interactive Clustering & Segmentation")
 
-    try:
-        # 🔥 Ensure Age_Code exists
-        if 'Age_Code' not in df.columns:
-            df['Age_Code'] = df['Age'].astype('category').cat.codes
+    # 🔥 FORCE DEBUG OUTPUT
+    st.write("Segmentation tab is active")
 
-        # 🔥 Slider
+    try:
+        # ------------------ DATA CHECK ------------------
+        st.write("Columns:", df.columns)
+
+        # 🔥 Ensure Age_Code exists
+        df['Age_Code'] = df['Age'].astype('category').cat.codes
+
+        # ------------------ SLIDER ------------------
         k = st.slider("⚙️ Select Number of Customer Segments (k):", 2, 10, 3)
 
         # ------------------ FEATURES ------------------
         X = df[['Age_Code', 'Purchase']]
 
-        from sklearn.preprocessing import StandardScaler
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-
-        # ------------------ KMEANS ------------------
+        # ------------------ MODEL ------------------
         from sklearn.cluster import KMeans
-        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        model = KMeans(n_clusters=k, random_state=42, n_init=10)
 
-        # ------------------ LABELS ------------------
-        cluster_means = df.groupby('Cluster')['Purchase'].mean().sort_values()
+        df['Cluster'] = model.fit_predict(X)
 
-        labels = {}
-        for i, cluster in enumerate(cluster_means.index):
-            if i == 0:
-                labels[cluster] = "Discount Lovers"
-            elif i == len(cluster_means) - 1:
-                labels[cluster] = "Premium Buyers"
-            else:
-                labels[cluster] = "Average Buyers"
+        st.success("Clustering successful")
 
-        df['Buyer_Persona'] = df['Cluster'].map(labels)
-
-        # ------------------ PLOT ------------------
+        # ------------------ VISUAL ------------------
         import plotly.express as px
 
         fig = px.scatter(
             df,
             x='Age',
             y='Purchase',
-            color='Buyer_Persona',
-            title=f"Customer Clusters (k={k})",
-            opacity=0.7
+            color=df['Cluster'].astype(str),
+            title=f"Customer Clusters (k={k})"
         )
 
         st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Something broke: {e}")
+        st.error(f"ERROR: {e}")
+
+# ------------------ PRODUCT INTELLIGENCE ------------------
+elif page == "🛒 Product Intelligence":
+    st.title("Product Intelligence")
+    st.write("Your rules and insights here")
 
 
 # =========================================================
