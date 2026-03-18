@@ -272,7 +272,7 @@ elif page == "🛒 Product Intelligence":
 
 
 # =========================================================
-# 🛒 PRODUCT INTELLIGENCE
+# 🛒 Product Intelligence
 # =========================================================
 elif page == "🛒 Product Intelligence":
     st.title("🛒 Product Intelligence")
