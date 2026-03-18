@@ -275,33 +275,118 @@ elif page == "🛒 Product Intelligence":
 # 🛒 PRODUCT INTELLIGENCE
 # =========================================================
 elif page == "🛒 Product Intelligence":
-    st.subheader("Market Basket Analysis")
+    st.title("🛒 Product Intelligence")
 
-    st.write("Discover which product categories are commonly purchased together.")
+    # =========================================================
+    # 🧠 INTRO
+    # =========================================================
+    st.markdown("### 🧠 What is this?")
+    st.write(
+        "This section analyzes customer purchase behavior to identify "
+        "which product categories are frequently bought together."
+    )
 
-    # Sample data
-    sample_df = df.sample(n=5000, random_state=42)
+    try:
+        # =========================================================
+        # 📊 DATA PREPARATION
+        # =========================================================
+        st.markdown("### 📊 Market Basket Analysis")
 
-    basket_data = sample_df[['User_ID', 
-                             'Product_Category_1', 
-                             'Product_Category_2', 
-                             'Product_Category_3']]
+        sample_df = df.sample(n=5000, random_state=42)
 
-    basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product').dropna()
+        basket_data = sample_df[['User_ID',
+                                 'Product_Category_1',
+                                 'Product_Category_2',
+                                 'Product_Category_3']]
 
-    basket = basket_data.groupby(['User_ID', 'Product'])['Product'] \
-                        .count().unstack().fillna(0)
+        # Convert to long format
+        basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product')
+        basket_data = basket_data.dropna()
 
-    basket = basket.applymap(lambda x: 1 if x > 0 else 0)
+        # Convert to string (important)
+        basket_data['Product'] = basket_data['Product'].astype(str)
 
-    from mlxtend.frequent_patterns import apriori, association_rules
+        # Create basket matrix
+        basket = basket_data.groupby(['User_ID', 'Product'])['Product'] \
+                            .count().unstack().fillna(0)
 
-    frequent = apriori(basket, min_support=0.01, use_colnames=True)
+        basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 
-    rules = association_rules(frequent, metric="lift", min_threshold=0.8)
+        st.write("📦 Basket size:", basket.shape)
 
-    st.write("Frequent itemsets:", len(frequent))
-    st.write("Rules:", len(rules))
+        # =========================================================
+        # ⚙️ USER CONTROL
+        # =========================================================
+        st.markdown("### ⚙️ Adjust Analysis Sensitivity")
+
+        min_support = st.slider("Minimum Support", 0.001, 0.05, 0.01)
+
+        # =========================================================
+        # 🧮 APRIORI MODEL
+        # =========================================================
+        from mlxtend.frequent_patterns import apriori, association_rules
+
+        frequent = apriori(basket, min_support=min_support, use_colnames=True)
+
+        if frequent.empty:
+            st.warning("No frequent itemsets found. Try lowering support.")
+            st.stop()
+
+        rules = association_rules(frequent, metric="confidence", min_threshold=0.1)
+
+        st.success(f"✅ Found {len(rules)} association rules")
+
+        # =========================================================
+        # 📋 RULES TABLE
+        # =========================================================
+        st.markdown("### 📋 Top Association Rules")
+
+        top_rules = rules.sort_values("lift", ascending=False).head(5)
+
+        st.dataframe(top_rules[['antecedents', 'consequents',
+                                'support', 'confidence', 'lift']])
+
+        # =========================================================
+        # 🔍 INSIGHTS
+        # =========================================================
+        st.markdown("### 🔍 Key Insights")
+
+        for _, row in top_rules.iterrows():
+            st.write(
+                f"Customers who buy {list(row['antecedents'])} "
+                f"are likely to also buy {list(row['consequents'])} "
+                f"(Confidence: {row['confidence']:.2f}, Lift: {row['lift']:.2f})"
+            )
+
+        # =========================================================
+        # 💡 BUSINESS RECOMMENDATIONS
+        # =========================================================
+        st.markdown("### 💡 Business Recommendations")
+
+        st.write("• Bundle frequently bought products together")
+        st.write("• Place associated items near each other in-store")
+        st.write("• Offer combo discounts to increase average order value")
+        st.write("• Use targeted ads based on purchase behavior")
+
+        # =========================================================
+        # 📊 BONUS VISUAL
+        # =========================================================
+        st.markdown("### 📊 Most Frequent Products")
+
+        top_products = basket.sum().sort_values(ascending=False).head(10)
+
+        import plotly.express as px
+        fig = px.bar(
+            x=top_products.index,
+            y=top_products.values,
+            labels={'x': 'Product Category', 'y': 'Frequency'},
+            title="Top Purchased Product Categories"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"❌ Error in Product Intelligence: {e}")
 # =========================================================
 # 🚨 ANOMALIES
 # =========================================================
