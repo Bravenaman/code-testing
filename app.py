@@ -43,6 +43,7 @@ df.fillna(0, inplace=True)
 with st.sidebar:
     st.title("RetailMind AI")
     page = st.radio("Navigation", [
+        "📌 Project Overview",
         "📊 Dashboard",
         "📈 Customer Insights",
         "🎯 Segmentation",
@@ -66,7 +67,109 @@ st.divider()
 # =========================================================
 # 📊 DASHBOARD
 # =========================================================
-if page == "📊 Dashboard":
+if page == "📌 Project Overview":
+    st.title("🛍️ Black Friday Sales Analysis")
+
+    # ------------------ OBJECTIVES ------------------
+    st.markdown("## 🎯 Project Objectives")
+
+    st.markdown("""
+    **Primary Goal:**  
+    Analyze customer purchasing behavior during Black Friday sales to uncover patterns and improve business decision-making.
+
+    **Secondary Goals:**
+    - Segment customers using clustering (K-Means)
+    - Identify product associations using Apriori algorithm
+    - Understand spending patterns across demographics
+    - Generate actionable insights for marketing strategies
+    """)
+
+    st.markdown("---")
+
+    # ------------------ PROJECT SCOPE ------------------
+    st.markdown("## 🌍 Project Scope")
+
+    st.markdown(f"""
+    - **Dataset:** Black Friday Sales Dataset  
+    - **Records:** {df.shape[0]} transactions  
+    - **Features:** {df.shape[1]} attributes  
+    - **Key Variables:** Age, Gender, Occupation, Product Categories, Purchase Amount  
+    - **Analysis Focus:** Customer behavior, product trends, and spending habits  
+    """)
+
+    st.markdown("---")
+
+    # ------------------ TASKS PERFORMED ------------------
+    st.markdown("## 🧠 Tasks Performed")
+
+    st.markdown("""
+    1. **Data Cleaning & Preprocessing**
+       - Handled missing values in product categories  
+       - Encoded categorical variables (Gender, Age)  
+
+    2. **Exploratory Data Analysis (EDA)**
+       - Distribution of purchase amounts  
+       - Demographic-based analysis  
+
+    3. **Customer Segmentation**
+       - Applied K-Means clustering  
+       - Identified distinct customer groups  
+
+    4. **Product Intelligence**
+       - Used Apriori algorithm  
+       - Generated association rules between product categories  
+
+    5. **Visualization**
+       - Built interactive charts using Plotly  
+    """)
+
+    st.markdown("---")
+    st.markdown("# 📊 Dataset Overview")
+
+    col1, col2 = st.columns([2, 1])
+
+    # ------------------ FEATURES DESCRIPTION ------------------
+    with col1:
+        st.markdown("## 🧾 Features Description")
+
+        feature_df = pd.DataFrame({
+            "Feature": df.columns,
+            "Type": df.dtypes.astype(str),
+            "Sample Value": [
+                str(df[col].dropna().iloc[0]) if not df[col].dropna().empty else "N/A"
+                for col in df.columns
+            ]
+        })
+
+        st.dataframe(feature_df)
+
+    # ------------------ DATA QUALITY ------------------
+    with col2:
+        st.markdown("## ✅ Data Quality")
+
+        missing_values = df.isnull().sum().sum()
+
+        if missing_values == 0:
+            st.success("✨ No missing values in dataset")
+        else:
+            st.warning(f"⚠️ Dataset has {missing_values} missing values")
+
+        st.markdown("### 📌 Quick Stats")
+        st.write(f"Rows: {df.shape[0]}")
+        st.write(f"Columns: {df.shape[1]}")
+        st.write(f"Unique Users: {df['User_ID'].nunique()}")
+        
+        st.markdown("---")
+
+    # ------------------ SAMPLE DATA ------------------
+    st.markdown("## 🔍 Sample Data")
+    st.dataframe(df.head(10))
+        
+
+# =========================================================
+# 📊 DASHBOARD
+# =========================================================
+elif page == "📊 Dashboard":
     st.subheader("Business Overview")
 
     fig = px.histogram(df, x="Purchase", nbins=50, title="Purchase Distribution")
