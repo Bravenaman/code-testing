@@ -275,69 +275,33 @@ elif page == "🛒 Product Intelligence":
 # 🛒 PRODUCT INTELLIGENCE
 # =========================================================
 elif page == "🛒 Product Intelligence":
-    st.subheader("🛒 Market Basket Analysis")
+    st.subheader("Market Basket Analysis")
 
     st.write("Discover which product categories are commonly purchased together.")
 
-    try:
-        # ------------------ SAMPLE DATA ------------------
-        sample_df = df.sample(n=10000, random_state=42)
+    # Sample data
+    sample_df = df.sample(n=5000, random_state=42)
 
-        # ------------------ CLEAN DATA ------------------
-        basket_data = sample_df[['User_ID',
-                                 'Product_Category_1',
-                                 'Product_Category_2',
-                                 'Product_Category_3']]
+    basket_data = sample_df[['User_ID', 
+                             'Product_Category_1', 
+                             'Product_Category_2', 
+                             'Product_Category_3']]
 
-        # Convert to long format
-        basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product')
-        basket_data = basket_data.dropna()
+    basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product').dropna()
 
-        # Convert product to string (important)
-        basket_data['Product'] = basket_data['Product'].astype(str)
+    basket = basket_data.groupby(['User_ID', 'Product'])['Product'] \
+                        .count().unstack().fillna(0)
 
-        # ------------------ CREATE BASKET ------------------
-        basket = basket_data.groupby(['User_ID', 'Product'])['Product'] \
-                            .count().unstack().fillna(0)
+    basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 
-        basket = basket.applymap(lambda x: 1 if x > 0 else 0)
+    from mlxtend.frequent_patterns import apriori, association_rules
 
-        st.write("Basket shape:", basket.shape)  # DEBUG
+    frequent = apriori(basket, min_support=0.01, use_colnames=True)
 
-        # ------------------ APRIORI ------------------
-        from mlxtend.frequent_patterns import apriori, association_rules
+    rules = association_rules(frequent, metric="lift", min_threshold=0.8)
 
-        frequent = apriori(basket, min_support=0.005, use_colnames=True)
-
-        st.write("Frequent itemsets:", len(frequent))  # DEBUG
-
-        # ------------------ RULES ------------------
-        rules = association_rules(frequent, metric="confidence", min_threshold=0.1)
-
-        st.write("Rules generated:", len(rules))  # DEBUG
-
-        # ------------------ OUTPUT ------------------
-        if not rules.empty:
-            st.success(f"Found {len(rules)} rules!")
-
-            top_rules = rules.sort_values("lift", ascending=False).head(5)
-
-            st.dataframe(top_rules[['antecedents', 'consequents',
-                                    'support', 'confidence', 'lift']])
-
-            st.markdown("### 🔍 Key Insights")
-
-            for _, row in top_rules.iterrows():
-                st.write(
-                    f"If a user buys {list(row['antecedents'])}, "
-                    f"they are likely to also buy {list(row['consequents'])} "
-                    f"(Lift: {row['lift']:.2f}, Confidence: {row['confidence']:.2f})"
-                )
-        else:
-            st.warning("Still no rules found — dataset is sparse, but code is working.")
-
-    except Exception as e:
-        st.error(f"Error in Product Intelligence: {e}")
+    st.write("Frequent itemsets:", len(frequent))
+    st.write("Rules:", len(rules))
 # =========================================================
 # 🚨 ANOMALIES
 # =========================================================
