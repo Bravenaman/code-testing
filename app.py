@@ -282,7 +282,7 @@ elif page == "🛒 Product Intelligence":
     # =========================================================
     st.markdown("### 🧠 What is this?")
     st.write(
-        "This section analyzes customer purchase behavior to identify "
+        "This section analyzes customer purchasing behavior to identify "
         "which product categories are frequently bought together."
     )
 
@@ -302,8 +302,6 @@ elif page == "🛒 Product Intelligence":
         # Convert to long format
         basket_data = basket_data.melt(id_vars=['User_ID'], value_name='Product')
         basket_data = basket_data.dropna()
-
-        # Convert to string (important)
         basket_data['Product'] = basket_data['Product'].astype(str)
 
         # Create basket matrix
@@ -312,10 +310,10 @@ elif page == "🛒 Product Intelligence":
 
         basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 
-        st.write("📦 Basket size:", basket.shape)
+        st.write("📦 Basket Size:", basket.shape)
 
         # =========================================================
-        # ⚙️ USER CONTROL
+        # ⚙️ CONTROL PANEL
         # =========================================================
         st.markdown("### ⚙️ Adjust Analysis Sensitivity")
 
@@ -329,61 +327,63 @@ elif page == "🛒 Product Intelligence":
         frequent = apriori(basket, min_support=min_support, use_colnames=True)
 
         if frequent.empty:
-            st.warning("No frequent itemsets found. Try lowering support.")
-            st.stop()
+            st.warning("⚠️ No frequent itemsets found. Try lowering support.")
+        else:
+            rules = association_rules(frequent, metric="confidence", min_threshold=0.1)
 
-        rules = association_rules(frequent, metric="confidence", min_threshold=0.1)
+            if rules.empty:
+                st.warning("⚠️ No association rules found.")
+            else:
+                st.success(f"✅ Found {len(rules)} association rules")
 
-        st.success(f"✅ Found {len(rules)} association rules")
+                # =========================================================
+                # 📋 RULES TABLE
+                # =========================================================
+                st.markdown("### 📋 Top Association Rules")
 
-        # =========================================================
-        # 📋 RULES TABLE
-        # =========================================================
-        st.markdown("### 📋 Top Association Rules")
+                top_rules = rules.sort_values("lift", ascending=False).head(5)
 
-        top_rules = rules.sort_values("lift", ascending=False).head(5)
+                st.dataframe(top_rules[['antecedents', 'consequents',
+                                        'support', 'confidence', 'lift']])
 
-        st.dataframe(top_rules[['antecedents', 'consequents',
-                                'support', 'confidence', 'lift']])
+                # =========================================================
+                # 🔍 INSIGHTS
+                # =========================================================
+                st.markdown("### 🔍 Key Insights")
 
-        # =========================================================
-        # 🔍 INSIGHTS
-        # =========================================================
-        st.markdown("### 🔍 Key Insights")
+                for _, row in top_rules.iterrows():
+                    st.write(
+                        f"Customers who buy {list(row['antecedents'])} "
+                        f"are likely to also buy {list(row['consequents'])} "
+                        f"(Confidence: {row['confidence']:.2f}, Lift: {row['lift']:.2f})"
+                    )
 
-        for _, row in top_rules.iterrows():
-            st.write(
-                f"Customers who buy {list(row['antecedents'])} "
-                f"are likely to also buy {list(row['consequents'])} "
-                f"(Confidence: {row['confidence']:.2f}, Lift: {row['lift']:.2f})"
-            )
+                # =========================================================
+                # 💡 BUSINESS RECOMMENDATIONS
+                # =========================================================
+                st.markdown("### 💡 Business Recommendations")
 
-        # =========================================================
-        # 💡 BUSINESS RECOMMENDATIONS
-        # =========================================================
-        st.markdown("### 💡 Business Recommendations")
+                st.write("• Bundle frequently bought products together")
+                st.write("• Place associated items near each other in-store")
+                st.write("• Offer combo discounts to increase average order value")
+                st.write("• Use targeted promotions based on buying patterns")
 
-        st.write("• Bundle frequently bought products together")
-        st.write("• Place associated items near each other in-store")
-        st.write("• Offer combo discounts to increase average order value")
-        st.write("• Use targeted ads based on purchase behavior")
+                # =========================================================
+                # 📊 VISUALIZATION
+                # =========================================================
+                st.markdown("### 📊 Most Frequent Product Categories")
 
-        # =========================================================
-        # 📊 BONUS VISUAL
-        # =========================================================
-        st.markdown("### 📊 Most Frequent Products")
+                top_products = basket.sum().sort_values(ascending=False).head(10)
 
-        top_products = basket.sum().sort_values(ascending=False).head(10)
+                import plotly.express as px
+                fig = px.bar(
+                    x=top_products.index,
+                    y=top_products.values,
+                    labels={'x': 'Product Category', 'y': 'Frequency'},
+                    title="Top Purchased Categories"
+                )
 
-        import plotly.express as px
-        fig = px.bar(
-            x=top_products.index,
-            y=top_products.values,
-            labels={'x': 'Product Category', 'y': 'Frequency'},
-            title="Top Purchased Product Categories"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ Error in Product Intelligence: {e}")
