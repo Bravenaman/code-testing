@@ -7,124 +7,140 @@ from sklearn.cluster import KMeans
 from mlxtend.frequent_patterns import apriori, association_rules
 
 # ------------------ PAGE CONFIG ------------------
-st.set_page_config(page_title="RetailMind AI", page_icon="🛍️", layout="wide")
+st.set_page_config(page_title="Black Friday Insights", page_icon="🛍️", layout="wide")
 
-# ------------------ LOAD DATA ------------------
+# ------------------ LOAD & PREPROCESS (Stage 2) ------------------
 @st.cache_data
-def load_data():
+def load_and_clean_data():
     try:
-        # Using a sample or full dataset as per Stage 2 [cite: 254]
         df = pd.read_csv("BlackFriday.csv")
-        # Preprocessing [cite: 256, 257, 258]
-        df['Gender_Code'] = df['Gender'].map({'Male': 0, 'Female': 1})
-        # Mapping Age groups to ordered numbers 
-        age_map = {'0-17':1, '18-25':2, '26-35':3, '36-45':4, '46-50':5, '51-55':6, '55+':7}
-        df['Age_Code'] = df['Age'].map(age_map)
-        # Handle missing values [cite: 256]
+        
+        # Encoding Gender: Male=0, Female=1 [cite: 43]
+        df['Gender_Numeric'] = df['Gender'].map({'M': 0, 'F': 1})
+        
+        # Encoding Age groups into ordered numbers [cite: 44]
+        age_mapping = {'0-17': 1, '18-25': 2, '26-35': 3, '36-45': 4, '46-50': 5, '51-55': 6, '55+': 7}
+        df['Age_Encoded'] = df['Age'].map(age_mapping)
+        
+        # Handle missing values in Product Category 2 & 3 [cite: 42]
         df['Product_Category_2'] = df['Product_Category_2'].fillna(0)
         df['Product_Category_3'] = df['Product_Category_3'].fillna(0)
+        
         return df
     except Exception as e:
-        st.error(f"Error loading data: {e}")
+        st.error(f"Error: {e}")
         return None
 
-df = load_data()
-
-if df is None:
-    st.stop()
+df = load_and_clean_data()
 
 # ------------------ SIDEBAR NAVIGATION ------------------
-with st.sidebar:
-    st.title("WACP Data Mining")
-    page = st.radio("Stages", [
-        "1. Project Scope",
-        "2. EDA & Visuals",
-        "3. Customer Clustering",
-        "4. Product Intelligence",
-        "5. Anomaly Detection",
-        "6. Final Insights"
-    ])
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to:", [
+    "Project Scope", 
+    "Exploratory Data Analysis", 
+    "Customer Clustering", 
+    "Product Intelligence", 
+    "Anomaly Detection",
+    "Final Recommendations"
+])
 
-# ------------------ STAGE 1: PROJECT SCOPE [cite: 234] ------------------
-if page == "1. Project Scope":
-    st.header("🎯 Stage 1: Define Project Scope")
+# ------------------ STAGE 1: SCOPE [cite: 20] ------------------
+if page == "Project Scope":
+    st.header("Mining the Future: Black Friday Sales Insights")
+    st.subheader("Project Objectives [cite: 27]")
     st.markdown("""
-    **Objective:** Analyze Black Friday retail sales to uncover customer segments and product associations[cite: 237].
-    * **Target:** InsightMart Analytics Retail Chain[cite: 218].
-    * **Key Metrics:** Purchase patterns, demographics, and high-spender detection[cite: 242, 247].
+    * **Identify shopping behaviors** across demographics[cite: 28].
+    * **Group customers** into distinct clusters[cite: 30].
+    * **Find product combinations** often bought together[cite: 32].
+    * **Detect unusual big spenders** (Anomalies)[cite: 33].
     """)
-    st.dataframe(df.head(10))
+    st.write("### Dataset Preview", df.head())
 
-# ------------------ STAGE 2: EDA [cite: 262] ------------------
-elif page == "2. EDA & Visuals":
-    st.header("📊 Stage 2: Exploratory Data Analysis")
+# ------------------ STAGE 3: EDA [cite: 48] ------------------
+elif page == "Exploratory Data Analysis":
+    st.header("📊 Exploratory Data Analysis")
+    
     col1, col2 = st.columns(2)
-    
     with col1:
-        # Purchase by Gender [cite: 264]
-        fig1 = px.box(df, x="Gender", y="Purchase", title="Purchase Distribution by Gender")
-        st.plotly_chart(fig1)
-        
-    with col2:
-        # Popular Categories [cite: 265]
-        cat_counts = df['Product_Category_1'].value_counts().reset_index()
-        fig2 = px.bar(cat_counts, x="Product_Category_1", y="count", title="Top Product Categories")
-        st.plotly_chart(fig2)
-
-# ------------------ STAGE 3: CLUSTERING [cite: 270] ------------------
-elif page == "3. Customer Clustering":
-    st.header("🎯 Stage 3: Customer Segmentation")
-    # Prepare features for K-Means [cite: 273]
-    X = df[['Age_Code', 'Purchase']].dropna()
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+        # Purchase by Age & Gender [cite: 50]
+        fig_age = px.box(df, x="Age", y="Purchase", color="Gender", title="Purchase Distribution by Age & Gender")
+        st.plotly_chart(fig_age)
     
-    # Elbow Method [cite: 274]
-    st.subheader("Elbow Method to Find Optimal K")
-    inertia = [KMeans(n_clusters=k, n_init=10).fit(X_scaled).inertia_ for k in range(1, 7)]
+    with col2:
+        # Popular Product Categories [cite: 51]
+        cat_data = df['Product_Category_1'].value_counts().reset_index()
+        fig_cat = px.bar(cat_data, x="Product_Category_1", y="count", title="Most Popular Product Categories")
+        st.plotly_chart(fig_cat)
+
+# ------------------ STAGE 4: CLUSTERING [cite: 56] ------------------
+elif page == "Customer Clustering":
+    st.header("🎯 Customer Segmentation (K-Means)")
+    st.write("Grouping customers based on Age and Purchase habits[cite: 59].")
+    
+    # Feature Selection & Normalization [cite: 45, 59]
+    cluster_data = df[['Age_Encoded', 'Purchase']].dropna()
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(cluster_data)
+    
+    # Elbow Method [cite: 60]
+    st.write("### Elbow Method")
+    inertia = []
+    for i in range(1, 8):
+        km = KMeans(n_clusters=i, n_init=10, random_state=42).fit(scaled_features)
+        inertia.append(km.inertia_)
     st.line_chart(inertia)
     
-    k = st.slider("Select Clusters", 2, 5, 3)
-    model = KMeans(n_clusters=k, n_init=10)
-    df['Cluster'] = model.fit_predict(X_scaled)
+    k = st.slider("Select Number of Clusters", 2, 6, 3)
+    model = KMeans(n_clusters=k, n_init=10, random_state=42)
+    df['Cluster'] = model.fit_predict(scaled_features)
     
-    fig = px.scatter(df.sample(5000), x="Age", y="Purchase", color="Cluster", title="Customer Segments")
-    st.plotly_chart(fig)
+    # Visualization [cite: 62]
+    fig_cluster = px.scatter(df.sample(5000), x="Age", y="Purchase", color="Cluster", title="Customer Segments")
+    st.plotly_chart(fig_cluster)
 
-# ------------------ STAGE 4: PRODUCT INTELLIGENCE (FIXED) [cite: 279] ------------------
-elif page == "4. Product Intelligence":
-    st.header("🛒 Stage 4: Association Rule Mining")
-    st.info("Finding product combinations often bought together[cite: 246].")
+# ------------------ STAGE 5: PRODUCT INTELLIGENCE [cite: 65, 69] ------------------
+elif page == "Product Intelligence":
+    st.header("🛒 Association Rule Mining (Apriori)")
+    st.write("Discovering which product categories are bought together.")
     
-    # Simulating Market Basket by grouping categories per User 
-    basket_df = df.sample(2000).groupby(['User_ID', 'Product_Category_1'])['Product_Category_1'].count().unstack().fillna(0)
-    basket_sets = basket_df.applymap(lambda x: 1 if x > 0 else 0)
+    # Preparing data for Apriori
+    # We create a 'basket' of Category 1, 2, and 3
+    basket = df.sample(3000)[['User_ID', 'Product_Category_1', 'Product_Category_2', 'Product_Category_3']]
+    basket = pd.get_dummies(basket.melt(id_vars='User_ID')['value'])
+    basket = basket.groupby(level=0).max()
     
-    # Apriori Algorithm 
-    frequent_itemsets = apriori(basket_sets, min_support=0.05, use_colnames=True)
-    if not frequent_itemsets.empty:
-        rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
-        st.write("### Frequent Product Rules")
+    # Apply Apriori 
+    frequent_items = apriori(basket, min_support=0.05, use_colnames=True)
+    if not frequent_items.empty:
+        rules = association_rules(frequent_items, metric="lift", min_threshold=1)
+        st.write("### Frequent Product Combinations")
         st.dataframe(rules[['antecedents', 'consequents', 'support', 'confidence', 'lift']])
     else:
-        st.warning("No frequent associations found with current support threshold.")
+        st.warning("Increase the sample size or lower support to see rules.")
 
-# ------------------ STAGE 5: ANOMALY DETECTION  ------------------
-elif page == "5. Anomaly Detection":
-    st.header("🚨 Stage 5: Detecting Unusual Spenders")
-    # Using Z-Score as suggested in Stage 6 
-    threshold = df['Purchase'].mean() + (3 * df['Purchase'].std())
-    anomalies = df[df['Purchase'] > threshold]
+# ------------------ STAGE 6: ANOMALY DETECTION  ------------------
+elif page == "Anomaly Detection":
+    st.header("🚨 Detecting Unusual Spenders")
+    st.write("Identifying transactions that are significantly higher than average.")
     
-    st.write(f"Detected **{len(anomalies)}** unusually high transactions (Threshold: ${threshold:,.2f})")
-    fig = px.histogram(df, x="Purchase", color=df['Purchase'] > threshold, title="Spending Anomalies")
-    st.plotly_chart(fig)
+    # IQR Method 
+    Q1 = df['Purchase'].quantile(0.25)
+    Q3 = df['Purchase'].quantile(0.75)
+    IQR = Q3 - Q1
+    upper_bound = Q3 + 1.5 * IQR
+    
+    df['Is_Anomaly'] = df['Purchase'] > upper_bound
+    anomalies = df[df['Is_Anomaly'] == True]
+    
+    st.error(f"Detected {len(anomalies)} anomalies out of {len(df)} transactions.")
+    fig_anom = px.histogram(df, x="Purchase", color="Is_Anomaly", title="Anomalies in Spending")
+    st.plotly_chart(fig_anom)
 
-# ------------------ STAGE 6: REPORTING [cite: 365] ------------------
-elif page == "6. Final Insights":
-    st.header("📋 Stage 6: Strategic Recommendations")
+# ------------------ STAGE 7: REPORTING  ------------------
+elif page == "Final Recommendations":
+    st.header("💡 Business Insights & Reporting")
     st.markdown(f"""
-    1. **Primary Spenders:** The **{df.groupby('Age')['Purchase'].sum().idxmax()}** age group shows the highest total spending.
-    2. **Gender Preference:** { "Males" if df[df['Gender']=='M']['Purchase'].mean() > df[df['Gender']=='F']['Purchase'].mean() else "Females" } spend more on average.
-    3. **Strategy:** Target 'Premium Buyers' (Cluster 1) with loyalty rewards for High-Category items.
+    * **Top Age Group:** The {df.groupby('Age')['Purchase'].sum().idxmax()} group contributes the most revenue.
+    * **Gender Insights:** Analysis shows specific product categories dominate based on Gender.
+    * **Cross-Selling:** High lift values in Association Rules suggest bundling Category {rules['antecedents'].iloc[0]} with Category {rules['consequents'].iloc[0]}.
     """)
