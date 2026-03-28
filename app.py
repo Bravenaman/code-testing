@@ -16,7 +16,6 @@ st.markdown("""
 body {
     background: linear-gradient(135deg, #020617, #0f172a);
 }
-
 .main-header {
     font-size: 3.2rem;
     font-weight: 900;
@@ -28,7 +27,6 @@ body {
     backdrop-filter: blur(12px);
     border: 1px solid rgba(0,229,255,0.3);
 }
-
 .glass {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
@@ -37,13 +35,11 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
     margin-bottom: 20px;
 }
-
 .metric {
     font-size: 2.2rem;
     color: #00E5FF;
     font-weight: bold;
 }
-
 .insight {
     background: rgba(0,229,255,0.1);
     border-left: 5px solid #00E5FF;
@@ -63,8 +59,10 @@ def load():
     np.random.seed(42)
     n = 3000
     df = pd.DataFrame({
+        "User_ID": np.random.randint(10000,15000,n),
         "Age": np.random.choice(['18-25','26-35','36-45','46-50'], n),
         "Gender": np.random.choice(['Male','Female'], n),
+        "Occupation": np.random.randint(0,20,n),
         "Purchase": np.abs(np.random.normal(9000,3000,n)),
         "Category": np.random.choice(['Electronics','Apparel','Home','Beauty'], n)
     })
@@ -81,88 +79,91 @@ def load():
 
 df = load()
 
-# ------------------ SIDEBAR FILTERS ------------------
-st.sidebar.title("🎛️ Controls")
-
-age_filter = st.sidebar.multiselect("Age Filter", df['Age'].unique(), default=df['Age'].unique())
-gender_filter = st.sidebar.multiselect("Gender Filter", df['Gender'].unique(), default=df['Gender'].unique())
-
-df = df[(df['Age'].isin(age_filter)) & (df['Gender'].isin(gender_filter))]
+# ------------------ SIDEBAR ------------------
+page = st.sidebar.radio("📊 Navigation", [
+    "Stage 1: Scope",
+    "Stage 2: Preprocessing",
+    "Stage 3: EDA",
+    "Stage 4: Clustering",
+    "Stage 5: Association",
+    "Stage 6: Anomaly",
+    "Stage 7: Final"
+])
 
 # ------------------ HEADER ------------------
 st.markdown('<div class="main-header">🛍️ AI Retail Intelligence System</div>', unsafe_allow_html=True)
 
-# ------------------ KPIs ------------------
-c1,c2,c3 = st.columns(3)
-c1.markdown(f'<div class="glass"><div class="metric">${df.Purchase.sum():,.0f}</div>Total Revenue</div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="glass"><div class="metric">${df.Purchase.mean():,.0f}</div>Avg Spend</div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="glass"><div class="metric">{len(df)}</div>Transactions</div>', unsafe_allow_html=True)
+# ------------------ STAGE 1 ------------------
+if page == "Stage 1: Scope":
+    st.markdown('<div class="glass">🎯 Goal: Understand customer behavior and maximize revenue using data.</div>', unsafe_allow_html=True)
 
-# ------------------ EDA ------------------
-st.markdown("### 📊 Spending Patterns")
+# ------------------ STAGE 2 ------------------
+elif page == "Stage 2: Preprocessing":
+    st.markdown('<div class="glass">Data cleaned, encoded, and normalized for analysis.</div>', unsafe_allow_html=True)
+    st.dataframe(df.head())
 
-fig = px.box(df, x="Age", y="Purchase", color="Gender",
-             color_discrete_map={'Male':'#00E5FF','Female':'#A259FF'},
-             template='plotly_dark')
-st.plotly_chart(fig, use_container_width=True)
+# ------------------ STAGE 3 ------------------
+elif page == "Stage 3: EDA":
+    fig = px.box(df, x="Age", y="Purchase", color="Gender",
+                 color_discrete_map={'Male':'#00E5FF','Female':'#A259FF'},
+                 template='plotly_dark')
+    st.plotly_chart(fig, use_container_width=True)
 
-top_age = df.groupby('Age')['Purchase'].mean().idxmax()
-insight(f"Highest spending group is {top_age}, making them the primary revenue drivers.")
+    top_age = df.groupby('Age')['Purchase'].mean().idxmax()
+    insight(f"Highest spending group is {top_age}.")
 
-# ------------------ CLUSTERING ------------------
-st.markdown("### 🎯 Customer Segments")
+# ------------------ STAGE 4 ------------------
+elif page == "Stage 4: Clustering":
+    k = st.slider("Clusters",2,5,3)
 
-k = st.slider("Clusters",2,5,3)
+    X = df[['Age_Code','Scaled']]
+    model = KMeans(n_clusters=k,n_init=10)
+    df['Cluster'] = model.fit_predict(X)
 
-X = df[['Age_Code','Scaled']]
-model = KMeans(n_clusters=k,n_init=10)
-df['Cluster'] = model.fit_predict(X)
+    cluster_avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
+    labels = ["Low","Mid","High","VIP","Elite"]
+    mapping = {c:labels[i] for i,c in enumerate(cluster_avg.index)}
+    df['Segment'] = df['Cluster'].map(mapping)
 
-cluster_avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
+    fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
+                     template='plotly_dark')
+    st.plotly_chart(fig, use_container_width=True)
 
-labels = ["Low","Mid","High","VIP","Elite"]
-mapping = {c:labels[i] for i,c in enumerate(cluster_avg.index)}
-df['Segment'] = df['Cluster'].map(mapping)
+    insight("High-value segments are your revenue drivers.")
 
-fig2 = px.scatter(df, x="Age", y="Purchase", color="Segment",
-                  template='plotly_dark')
-st.plotly_chart(fig2, use_container_width=True)
+# ------------------ STAGE 5 ------------------
+elif page == "Stage 5: Association":
+    transactions = df[['Category']].values.tolist()
+    te = TransactionEncoder()
+    df_te = pd.DataFrame(te.fit(transactions).transform(transactions), columns=te.columns_)
 
-insight("High-value clusters represent premium customers — target them for maximum ROI.")
+    freq = apriori(df_te, min_support=0.1, use_colnames=True)
 
-# ------------------ ASSOCIATION ------------------
-st.markdown("### 🛒 Product Intelligence")
+    if not freq.empty:
+        rules = association_rules(freq, metric="lift", min_threshold=1)
+        st.dataframe(rules.head())
 
-transactions = df[['Category']].values.tolist()
-te = TransactionEncoder()
-df_te = pd.DataFrame(te.fit(transactions).transform(transactions), columns=te.columns_)
+        insight("Product bundling opportunities detected.")
 
-freq = apriori(df_te, min_support=0.1, use_colnames=True)
+# ------------------ STAGE 6 ------------------
+elif page == "Stage 6: Anomaly":
+    Q1 = df['Purchase'].quantile(0.25)
+    Q3 = df['Purchase'].quantile(0.75)
+    upper = Q3 + 1.5*(Q3-Q1)
 
-if not freq.empty:
-    rules = association_rules(freq, metric="lift", min_threshold=1)
-    st.dataframe(rules.head(5))
+    df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
 
-    insight("Product combinations reveal strong bundling opportunities.")
+    fig = px.histogram(df, x="Purchase", color="Type",
+                       template='plotly_dark')
+    st.plotly_chart(fig, use_container_width=True)
 
-# ------------------ ANOMALY ------------------
-st.markdown("### 🚨 High-Value Customers")
+    insight("VIP customers identified for retention.")
 
-Q1 = df['Purchase'].quantile(0.25)
-Q3 = df['Purchase'].quantile(0.75)
-upper = Q3 + 1.5*(Q3-Q1)
+# ------------------ STAGE 7 ------------------
+elif page == "Stage 7: Final":
+    insight("Target high-value clusters.")
+    insight("Use bundling strategies.")
+    insight("Retain VIP customers.")
 
-df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
-
-fig3 = px.histogram(df, x="Purchase", color="Type",
-                    template='plotly_dark')
-st.plotly_chart(fig3, use_container_width=True)
-
-insight("VIP customers (outliers) should be retained with loyalty rewards.")
-
-# ------------------ FINAL ------------------
-st.markdown("### 💡 AI Strategy Engine")
-
-insight("Focus marketing on high-value segments instead of general users.")
-insight("Use product bundling to increase average order value.")
-insight("Retain VIP customers to maximize long-term revenue.")
+# ------------------ FOOTER ------------------
+st.markdown('<div class="glass">🚀 Built as an AI-powered decision system</div>', unsafe_allow_html=True)
