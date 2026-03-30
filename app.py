@@ -58,6 +58,31 @@ st.markdown("""
     color: #E5E7EB;
     margin-bottom: 10px;
 }
+
+/* -------- NEW DUAL CARD -------- */
+.dual-card {
+    background: linear-gradient(145deg, #111827, #1F2937);
+    padding: 25px;
+    border-radius: 18px;
+    border-left: 6px solid #38BDF8;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    height: 100%;
+}
+
+.dual-card h3 {
+    color: #E5E7EB;
+    margin-bottom: 15px;
+}
+
+.dual-card ul {
+    padding-left: 20px;
+}
+
+.dual-card li {
+    margin-bottom: 10px;
+    color: #CBD5F5;
+    font-size: 1rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -108,7 +133,7 @@ def load():
 
 df = load()
 
-# ------------------ FILTERS ------------------
+# ------------------ SIDEBAR ------------------
 st.sidebar.title("🎛️ Controls")
 
 age_filter = st.sidebar.multiselect("Age", df['Age'].unique(), df['Age'].unique())
@@ -121,7 +146,6 @@ df = df[
     (df['Category'].isin(cat_filter))
 ]
 
-# ------------------ NAVIGATION ------------------
 page = st.sidebar.radio("📊 Navigation", [
     "Stage 1: Scope",
     "Stage 2: Preprocessing",
@@ -132,7 +156,7 @@ page = st.sidebar.radio("📊 Navigation", [
     "Stage 7: Final"
 ])
 
-# ------------------ HEADER + KPI ------------------
+# ------------------ HEADER ------------------
 header("🛍️ AI Retail Intelligence System")
 
 c1, c2, c3 = st.columns(3)
@@ -145,42 +169,60 @@ with c3:
 
 # ------------------ STAGE 1 ------------------
 if page == "Stage 1: Scope":
-    card("🎯 Goal: Turn raw data into business decisions using analytics.")
+    section("📋 Stage 1: Project Scope, Objectives & Tasks")
 
-# ------------------ STAGE 2 ------------------
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        <div class="dual-card">
+            <h3>🎯 Project Objectives</h3>
+            <ul>
+                <li><b>Primary Goal:</b> Analyze Black Friday sales data to uncover hidden consumer trends, segment customers by purchasing behavior, and identify high-value product combinations.</li>
+                <li><b>Outcome:</b> Deliver actionable business insights that help retailers optimize inventory, improve targeting strategies, and increase overall revenue.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="dual-card">
+            <h3>🗺️ Project Scope & Tasks</h3>
+            <ul>
+                <li><b>Data Preprocessing:</b> Clean and prepare raw transactional data.</li>
+                <li><b>EDA:</b> Explore patterns between demographics and spending.</li>
+                <li><b>Clustering:</b> Segment customers into meaningful groups.</li>
+                <li><b>Association Rules:</b> Identify cross-selling opportunities.</li>
+                <li><b>Anomaly Detection:</b> Detect high-value outlier customers.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ------------------ REST OF CODE SAME ------------------
 elif page == "Stage 2: Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
-# ------------------ STAGE 3 ------------------
 elif page == "Stage 3: EDA":
     section("Purchase Distribution")
-
     fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
-
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
     insight(f"Highest spending group is {top_age}.")
 
-# ------------------ STAGE 4 ------------------
 elif page == "Stage 4: Clustering":
     k = st.slider("Clusters",2,5,3)
-
     X = df[['Age_Code','Scaled']]
     model = KMeans(n_clusters=k,n_init=10)
     df['Cluster'] = model.fit_predict(X)
-
     avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
     labels = ["Low","Mid","High","VIP","Elite"]
     mapping = {c:labels[i] for i,c in enumerate(avg.index)}
     df['Segment'] = df['Cluster'].map(mapping)
-
     fig = px.scatter(df, x="Age", y="Purchase", color="Segment", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
-
     insight("High-value segments drive most revenue.")
 
-# ------------------ STAGE 5 ------------------
 elif page == "Stage 5: Association":
     support = st.slider("Support",0.01,0.2,0.05)
     confidence = st.slider("Confidence",0.1,1.0,0.5)
@@ -202,31 +244,22 @@ elif page == "Stage 5: Association":
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
         st.dataframe(rules)
-
         insight("Adjust sliders to discover relationships.")
 
-# ------------------ STAGE 6 ------------------
 elif page == "Stage 6: Anomaly":
     mult = st.slider("Sensitivity",1.0,3.0,1.5)
-
     Q1 = df['Purchase'].quantile(0.25)
     Q3 = df['Purchase'].quantile(0.75)
     upper = Q3 + mult*(Q3-Q1)
-
     df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
-
     fig = px.histogram(df, x="Purchase", color="Type", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
-
     insight("Higher sensitivity reduces VIP classification.")
 
-# ------------------ STAGE 7 ------------------
 elif page == "Stage 7: Final":
     st.markdown("### 🧠 Decision Engine")
-
     if len(df) > 0:
         top_age = df.groupby('Age')['Purchase'].mean().idxmax()
-
         st.success(f"""
         📌 Based on your filters:
 
@@ -234,5 +267,4 @@ elif page == "Stage 7: Final":
         • Strategy: Focus marketing here  
         • Action: Bundle high-performing categories  
         """)
-
     insight("Use filters to simulate strategies.")
