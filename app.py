@@ -7,45 +7,30 @@ from sklearn.cluster import KMeans
 from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
-# ------------------ PAGE CONFIG ------------------
-st.set_page_config(page_title="Black Friday AI Intelligence", layout="wide")
+# ------------------ CONFIG ------------------
+st.set_page_config(page_title="AI Retail Intelligence", layout="wide")
 
-# ------------------ GOD UI ------------------
+# ------------------ UI ------------------
 st.markdown("""
 <style>
-body {
-    background: linear-gradient(135deg, #020617, #0f172a);
-}
+body {background: linear-gradient(135deg, #020617, #0f172a);}
 .main-header {
-    font-size: 3.2rem;
-    font-weight: 900;
-    text-align: center;
-    color: #00E5FF;
-    padding: 20px;
-    border-radius: 15px;
+    font-size: 3rem; font-weight: 900; text-align: center;
+    color: #00E5FF; padding: 20px; border-radius: 15px;
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,229,255,0.3);
 }
 .glass {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px; padding: 20px;
     margin-bottom: 20px;
 }
-.metric {
-    font-size: 2.2rem;
-    color: #00E5FF;
-    font-weight: bold;
-}
+.metric {font-size: 2rem; color:#00E5FF;}
 .insight {
     background: rgba(0,229,255,0.1);
     border-left: 5px solid #00E5FF;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 10px;
+    padding: 15px; border-radius: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -63,8 +48,8 @@ def load():
         "Age": np.random.choice(['18-25','26-35','36-45','46-50'], n),
         "Gender": np.random.choice(['Male','Female'], n),
         "Occupation": np.random.randint(0,20,n),
-        "Purchase": np.abs(np.random.normal(9000,3000,n)),
-        "Category": np.random.choice(['Electronics','Apparel','Home','Beauty'], n)
+        "Category": np.random.choice(['Electronics','Apparel','Home','Beauty'], n),
+        "Purchase": np.abs(np.random.normal(9000,3000,n))
     })
 
     df.loc[df['Age']=='26-35','Purchase'] += 3000
@@ -79,7 +64,20 @@ def load():
 
 df = load()
 
-# ------------------ SIDEBAR ------------------
+# ------------------ FILTERS ------------------
+st.sidebar.title("🎛️ Controls")
+
+age_filter = st.sidebar.multiselect("Age", df['Age'].unique(), df['Age'].unique())
+gender_filter = st.sidebar.multiselect("Gender", df['Gender'].unique(), df['Gender'].unique())
+cat_filter = st.sidebar.multiselect("Category", df['Category'].unique(), df['Category'].unique())
+
+df = df[
+    (df['Age'].isin(age_filter)) &
+    (df['Gender'].isin(gender_filter)) &
+    (df['Category'].isin(cat_filter))
+]
+
+# ------------------ NAVIGATION ------------------
 page = st.sidebar.radio("📊 Navigation", [
     "Stage 1: Scope",
     "Stage 2: Preprocessing",
@@ -93,13 +91,19 @@ page = st.sidebar.radio("📊 Navigation", [
 # ------------------ HEADER ------------------
 st.markdown('<div class="main-header">🛍️ AI Retail Intelligence System</div>', unsafe_allow_html=True)
 
+# ------------------ KPI ------------------
+c1,c2,c3 = st.columns(3)
+c1.markdown(f'<div class="glass"><div class="metric">${df.Purchase.sum():,.0f}</div>Total Revenue</div>', unsafe_allow_html=True)
+c2.markdown(f'<div class="glass"><div class="metric">${df.Purchase.mean():,.0f}</div>Avg Spend</div>', unsafe_allow_html=True)
+c3.markdown(f'<div class="glass"><div class="metric">{len(df)}</div>Transactions</div>', unsafe_allow_html=True)
+
 # ------------------ STAGE 1 ------------------
 if page == "Stage 1: Scope":
-    st.markdown('<div class="glass">🎯 Goal: Understand customer behavior and maximize revenue using data.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="glass">🎯 Goal: Turn raw data into business decisions using analytics.</div>', unsafe_allow_html=True)
 
 # ------------------ STAGE 2 ------------------
 elif page == "Stage 2: Preprocessing":
-    st.markdown('<div class="glass">Data cleaned, encoded, and normalized for analysis.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="glass">Data cleaned, encoded, and scaled.</div>', unsafe_allow_html=True)
     st.dataframe(df.head())
 
 # ------------------ STAGE 3 ------------------
@@ -120,36 +124,41 @@ elif page == "Stage 4: Clustering":
     model = KMeans(n_clusters=k,n_init=10)
     df['Cluster'] = model.fit_predict(X)
 
-    cluster_avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
+    avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
     labels = ["Low","Mid","High","VIP","Elite"]
-    mapping = {c:labels[i] for i,c in enumerate(cluster_avg.index)}
+    mapping = {c:labels[i] for i,c in enumerate(avg.index)}
     df['Segment'] = df['Cluster'].map(mapping)
 
     fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
                      template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
 
-    insight("High-value segments are your revenue drivers.")
+    insight("High-value segments drive most revenue.")
 
 # ------------------ STAGE 5 ------------------
 elif page == "Stage 5: Association":
+    support = st.slider("Support",0.01,0.2,0.05)
+    confidence = st.slider("Confidence",0.1,1.0,0.5)
+
     transactions = df[['Category']].values.tolist()
     te = TransactionEncoder()
     df_te = pd.DataFrame(te.fit(transactions).transform(transactions), columns=te.columns_)
 
-    freq = apriori(df_te, min_support=0.1, use_colnames=True)
+    freq = apriori(df_te, min_support=support, use_colnames=True)
 
     if not freq.empty:
-        rules = association_rules(freq, metric="lift", min_threshold=1)
-        st.dataframe(rules.head())
+        rules = association_rules(freq, metric="confidence", min_threshold=confidence)
+        st.dataframe(rules)
 
-        insight("Product bundling opportunities detected.")
+        insight("Adjust sliders to discover stronger product relationships.")
 
 # ------------------ STAGE 6 ------------------
 elif page == "Stage 6: Anomaly":
+    mult = st.slider("Sensitivity",1.0,3.0,1.5)
+
     Q1 = df['Purchase'].quantile(0.25)
     Q3 = df['Purchase'].quantile(0.75)
-    upper = Q3 + 1.5*(Q3-Q1)
+    upper = Q3 + mult*(Q3-Q1)
 
     df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
 
@@ -157,13 +166,24 @@ elif page == "Stage 6: Anomaly":
                        template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
 
-    insight("VIP customers identified for retention.")
+    insight("Higher sensitivity reduces VIP classification.")
 
 # ------------------ STAGE 7 ------------------
 elif page == "Stage 7: Final":
-    insight("Target high-value clusters.")
-    insight("Use bundling strategies.")
-    insight("Retain VIP customers.")
+    st.markdown("### 🧠 Decision Engine")
+
+    if len(df) > 0:
+        top_age = df.groupby('Age')['Purchase'].mean().idxmax()
+
+        st.success(f"""
+        📌 Based on your filters:
+
+        • Target Age Group: {top_age}  
+        • Strategy: Focus marketing here  
+        • Action: Bundle high-performing categories  
+        """)
+
+    insight("Use filters to simulate different business strategies.")
 
 # ------------------ FOOTER ------------------
-st.markdown('<div class="glass">🚀 Built as an AI-powered decision system</div>', unsafe_allow_html=True)
+st.markdown('<div class="glass">🚀 Built as an interactive decision-making system</div>', unsafe_allow_html=True)
