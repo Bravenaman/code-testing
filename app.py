@@ -10,33 +10,77 @@ from mlxtend.preprocessing import TransactionEncoder
 # ------------------ CONFIG ------------------
 st.set_page_config(page_title="AI Retail Intelligence", layout="wide")
 
-# ------------------ UI ------------------
+# ------------------ CLEAN UI ------------------
 st.markdown("""
 <style>
-body {background: linear-gradient(135deg, #020617, #0f172a);}
-.main-header {
-    font-size: 3rem; font-weight: 900; text-align: center;
-    color: #00E5FF; padding: 20px; border-radius: 15px;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
+.block-container {
+    padding-top: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
-.glass {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 15px; padding: 20px;
+
+.header {
+    font-size: 2.8rem;
+    font-weight: 800;
+    text-align: center;
+    color: #38BDF8;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #0F172A;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
     margin-bottom: 20px;
 }
-.metric {font-size: 2rem; color:#00E5FF;}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #38BDF8;
+}
+
+.kpi-label {
+    color: #94A3B8;
+}
+
 .insight {
-    background: rgba(0,229,255,0.1);
-    border-left: 5px solid #00E5FF;
-    padding: 15px; border-radius: 10px;
+    background: rgba(56,189,248,0.08);
+    border-left: 4px solid #38BDF8;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.section {
+    font-size: 1.3rem;
+    color: #E5E7EB;
+    margin-bottom: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# ------------------ UI FUNCTIONS ------------------
+def header(text):
+    st.markdown(f'<div class="header">{text}</div>', unsafe_allow_html=True)
+
+def card(text):
+    st.markdown(f'<div class="card">{text}</div>', unsafe_allow_html=True)
+
+def kpi(label, value):
+    st.markdown(f"""
+    <div class="card">
+        <div class="kpi-value">{value}</div>
+        <div class="kpi-label">{label}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 def insight(text):
-    st.markdown(f'<div class="insight">⚡ {text}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="insight">💡 {text}</div>', unsafe_allow_html=True)
+
+def section(text):
+    st.markdown(f'<div class="section">{text}</div>', unsafe_allow_html=True)
 
 # ------------------ DATA ------------------
 @st.cache_data
@@ -88,29 +132,31 @@ page = st.sidebar.radio("📊 Navigation", [
     "Stage 7: Final"
 ])
 
-# ------------------ HEADER ------------------
-st.markdown('<div class="main-header">🛍️ AI Retail Intelligence System</div>', unsafe_allow_html=True)
+# ------------------ HEADER + KPI ------------------
+header("🛍️ AI Retail Intelligence System")
 
-# ------------------ KPI ------------------
-c1,c2,c3 = st.columns(3)
-c1.markdown(f'<div class="glass"><div class="metric">${df.Purchase.sum():,.0f}</div>Total Revenue</div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="glass"><div class="metric">${df.Purchase.mean():,.0f}</div>Avg Spend</div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="glass"><div class="metric">{len(df)}</div>Transactions</div>', unsafe_allow_html=True)
+c1, c2, c3 = st.columns(3)
+with c1:
+    kpi("Total Revenue", f"${df.Purchase.sum():,.0f}")
+with c2:
+    kpi("Avg Spend", f"${df.Purchase.mean():,.0f}")
+with c3:
+    kpi("Transactions", len(df))
 
 # ------------------ STAGE 1 ------------------
 if page == "Stage 1: Scope":
-    st.markdown('<div class="glass">🎯 Goal: Turn raw data into business decisions using analytics.</div>', unsafe_allow_html=True)
+    card("🎯 Goal: Turn raw data into business decisions using analytics.")
 
 # ------------------ STAGE 2 ------------------
 elif page == "Stage 2: Preprocessing":
-    st.markdown('<div class="glass">Data cleaned, encoded, and scaled.</div>', unsafe_allow_html=True)
+    card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
 # ------------------ STAGE 3 ------------------
 elif page == "Stage 3: EDA":
-    fig = px.box(df, x="Age", y="Purchase", color="Gender",
-                 color_discrete_map={'Male':'#00E5FF','Female':'#A259FF'},
-                 template='plotly_dark')
+    section("Purchase Distribution")
+
+    fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
 
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
@@ -129,80 +175,35 @@ elif page == "Stage 4: Clustering":
     mapping = {c:labels[i] for i,c in enumerate(avg.index)}
     df['Segment'] = df['Cluster'].map(mapping)
 
-    fig = px.scatter(df, x="Age", y="Purchase", color="Segment",
-                     template='plotly_dark')
+    fig = px.scatter(df, x="Age", y="Purchase", color="Segment", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
 
     insight("High-value segments drive most revenue.")
 
 # ------------------ STAGE 5 ------------------
 elif page == "Stage 5: Association":
+    support = st.slider("Support",0.01,0.2,0.05)
+    confidence = st.slider("Confidence",0.1,1.0,0.5)
 
-    st.markdown("### 📚 Student Behavior Pattern Mining")
-
-    # ------------------ CONTROLS ------------------
-    support = st.slider("Minimum Support", 0.01, 0.3, 0.05)
-    confidence = st.slider("Minimum Confidence", 0.1, 1.0, 0.5)
-
-    # ------------------ CREATE STUDENT DATA (IF NOT PRESENT) ------------------
-    # Simulating realistic student features
-    df['Study_Level'] = pd.cut(df['Purchase'],
-                              bins=3,
-                              labels=['Low Study', 'Medium Study', 'High Study'])
-
-    df['Performance'] = pd.cut(df['Purchase'],
-                              bins=3,
-                              labels=['Low Score', 'Average Score', 'High Score'])
-
-    # ------------------ BUILD TRANSACTIONS ------------------
     transactions = []
-
     for _, row in df.iterrows():
         basket = [
-            f"Study={row['Study_Level']}",
-            f"Performance={row['Performance']}",
+            f"Category={row['Category']}",
             f"Age={row['Age']}",
             f"Gender={row['Gender']}"
         ]
         transactions.append(basket)
 
-    # ------------------ ENCODING ------------------
     te = TransactionEncoder()
-    te_array = te.fit(transactions).transform(transactions)
-    df_te = pd.DataFrame(te_array, columns=te.columns_)
+    df_te = pd.DataFrame(te.fit(transactions).transform(transactions), columns=te.columns_)
 
-    # ------------------ APRIORI ------------------
     freq = apriori(df_te, min_support=support, use_colnames=True)
 
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
+        st.dataframe(rules)
 
-        if not rules.empty:
-            # Clean and format rules
-            rules = rules.sort_values("lift", ascending=False)
-
-            rules['Rule'] = rules['antecedents'].apply(lambda x: list(x)[0]) + " → " + \
-                            rules['consequents'].apply(lambda x: list(x)[0])
-
-            st.markdown("### 🔗 Top Patterns Discovered")
-            st.dataframe(rules[['Rule', 'support', 'confidence', 'lift']].head(10))
-
-            # ------------------ INSIGHT ------------------
-            top_rule = rules.iloc[0]['Rule']
-
-            st.success(f"""
-            📌 Key Insight:
-
-            Strongest Pattern Found:
-            {top_rule}
-
-            This indicates a strong relationship between these student behaviors.
-            """)
-
-        else:
-            st.warning("No strong rules found. Try lowering confidence.")
-    else:
-        st.warning("No frequent patterns found. Try lowering support.")
+        insight("Adjust sliders to discover relationships.")
 
 # ------------------ STAGE 6 ------------------
 elif page == "Stage 6: Anomaly":
@@ -214,8 +215,7 @@ elif page == "Stage 6: Anomaly":
 
     df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
 
-    fig = px.histogram(df, x="Purchase", color="Type",
-                       template='plotly_dark')
+    fig = px.histogram(df, x="Purchase", color="Type", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
 
     insight("Higher sensitivity reduces VIP classification.")
@@ -235,7 +235,4 @@ elif page == "Stage 7: Final":
         • Action: Bundle high-performing categories  
         """)
 
-    insight("Use filters to simulate different business strategies.")
-
-# ------------------ FOOTER ------------------
-st.markdown('<div class="glass">🚀 Built as an interactive decision-making system</div>', unsafe_allow_html=True)
+    insight("Use filters to simulate strategies.")
