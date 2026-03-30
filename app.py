@@ -168,7 +168,7 @@ with c3:
     kpi("Transactions", len(df))
 
 # ------------------ STAGE 1 ------------------
-if page == "Stage 1: Scope":
+if page == "Stage 1: Project Scope":
     section("📋 Stage 1: Project Scope, Objectives & Tasks")
 
     col1, col2 = st.columns(2)
@@ -199,7 +199,7 @@ if page == "Stage 1: Scope":
         """, unsafe_allow_html=True)
 
 # ------------------ REST OF CODE SAME ------------------
-elif page == "Stage 2: Preprocessing":
+elif page == "Stage 2: Data Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
@@ -210,7 +210,7 @@ elif page == "Stage 3: EDA":
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
     insight(f"Highest spending group is {top_age}.")
 
-elif page == "Stage 4: Clustering":
+elif page == "Stage 4: Clustering Analysis":
     k = st.slider("Clusters",2,5,3)
     X = df[['Age_Code','Scaled']]
     model = KMeans(n_clusters=k,n_init=10)
@@ -246,7 +246,7 @@ elif page == "Stage 5: Association":
         st.dataframe(rules)
         insight("Adjust sliders to discover relationships.")
 
-elif page == "Stage 6: Anomaly":
+elif page == "Stage 6: Anomaly Detection":
     mult = st.slider("Sensitivity",1.0,3.0,1.5)
     Q1 = df['Purchase'].quantile(0.25)
     Q3 = df['Purchase'].quantile(0.75)
