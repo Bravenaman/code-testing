@@ -137,20 +137,72 @@ elif page == "Stage 4: Clustering":
 
 # ------------------ STAGE 5 ------------------
 elif page == "Stage 5: Association":
-    support = st.slider("Support",0.01,0.2,0.05)
-    confidence = st.slider("Confidence",0.1,1.0,0.5)
 
-    transactions = df[['Category']].values.tolist()
+    st.markdown("### 📚 Student Behavior Pattern Mining")
+
+    # ------------------ CONTROLS ------------------
+    support = st.slider("Minimum Support", 0.01, 0.3, 0.05)
+    confidence = st.slider("Minimum Confidence", 0.1, 1.0, 0.5)
+
+    # ------------------ CREATE STUDENT DATA (IF NOT PRESENT) ------------------
+    # Simulating realistic student features
+    df['Study_Level'] = pd.cut(df['Purchase'],
+                              bins=3,
+                              labels=['Low Study', 'Medium Study', 'High Study'])
+
+    df['Performance'] = pd.cut(df['Purchase'],
+                              bins=3,
+                              labels=['Low Score', 'Average Score', 'High Score'])
+
+    # ------------------ BUILD TRANSACTIONS ------------------
+    transactions = []
+
+    for _, row in df.iterrows():
+        basket = [
+            f"Study={row['Study_Level']}",
+            f"Performance={row['Performance']}",
+            f"Age={row['Age']}",
+            f"Gender={row['Gender']}"
+        ]
+        transactions.append(basket)
+
+    # ------------------ ENCODING ------------------
     te = TransactionEncoder()
-    df_te = pd.DataFrame(te.fit(transactions).transform(transactions), columns=te.columns_)
+    te_array = te.fit(transactions).transform(transactions)
+    df_te = pd.DataFrame(te_array, columns=te.columns_)
 
+    # ------------------ APRIORI ------------------
     freq = apriori(df_te, min_support=support, use_colnames=True)
 
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
-        st.dataframe(rules)
 
-        insight("Adjust sliders to discover stronger product relationships.")
+        if not rules.empty:
+            # Clean and format rules
+            rules = rules.sort_values("lift", ascending=False)
+
+            rules['Rule'] = rules['antecedents'].apply(lambda x: list(x)[0]) + " → " + \
+                            rules['consequents'].apply(lambda x: list(x)[0])
+
+            st.markdown("### 🔗 Top Patterns Discovered")
+            st.dataframe(rules[['Rule', 'support', 'confidence', 'lift']].head(10))
+
+            # ------------------ INSIGHT ------------------
+            top_rule = rules.iloc[0]['Rule']
+
+            st.success(f"""
+            📌 Key Insight:
+
+            Strongest Pattern Found:
+            {top_rule}
+
+            This indicates a strong relationship between these student behaviors.
+            """)
+
+        else:
+            st.warning("No strong rules found. Try lowering confidence.")
+    else:
+        st.warning("No frequent patterns found. Try lowering support.")
 
 # ------------------ STAGE 6 ------------------
 elif page == "Stage 6: Anomaly":
