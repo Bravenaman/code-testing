@@ -203,12 +203,83 @@ elif page == "Stage 2: Data Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
-elif page == "Stage 3: EDA":
-    section("Purchase Distribution")
-    fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
-    st.plotly_chart(fig, use_container_width=True)
-    top_age = df.groupby('Age')['Purchase'].mean().idxmax()
-    insight(f"Highest spending group is {top_age}.")
+elif page == "3️⃣ Stage 3: EDA":
+    st.markdown('<div class="main-header">Stage 3: Exploratory Data Analysis</div>', unsafe_allow_html=True)
+
+    # Common Plot Config (prevents zoom/shrink issues)
+    plot_config = {
+        "scrollZoom": False,
+        "displaylogo": False,
+        "modeBarButtonsToRemove": ["zoom", "pan", "select", "lasso2d", "autoScale", "resetScale"]
+    }
+
+    # ------------------------------
+    # 2. Most Popular Product Categories
+    st.markdown("### 2. Most Popular Product Categories")
+
+    cat_counts = df['Product_Category_1'].value_counts().reset_index()
+    cat_counts.columns = ['Category', 'Number of Purchases']
+
+    fig2 = px.bar(
+        cat_counts,
+        x='Category',
+        y='Number of Purchases',
+        color='Category',
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig2, use_container_width=True, config=plot_config)
+
+    # ------------------------------
+    # 3. Average Purchase per Category
+    st.markdown("### 3. Average Purchase per Category")
+
+    cat_avg = df.groupby('Product_Category_1')['Purchase'].mean().reset_index()
+
+    fig3 = px.bar(
+        cat_avg,
+        x='Product_Category_1',
+        y='Purchase',
+        color='Purchase',
+        color_continuous_scale='viridis',
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig3, use_container_width=True, config=plot_config)
+
+    # ------------------------------
+    # 4. Scatter Plot: Purchase vs. Occupation
+    st.markdown("### 4. Scatter Plot: Purchase vs. Occupation")
+
+    fig4 = px.scatter(
+        df,
+        x='Occupation',
+        y='Purchase',
+        color='Gender',
+        opacity=0.6,
+        color_discrete_map={'Male': '#00E5FF', 'Female': '#FF4B8B'},
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig4, use_container_width=True, config=plot_config)
+
+    # ------------------------------
+    # 5. Correlation Heatmap for Key Features
+    st.markdown("### 5. Correlation Heatmap for Key Features")
+
+    corr_cols = ['Age_Code', 'Gender_Code', 'Occupation', 'Marital_Status', 'Purchase']
+    corr_matrix = df[corr_cols].corr()
+
+    fig5 = px.imshow(
+        corr_matrix,
+        text_auto=True,
+        color_continuous_scale='RdBu_r',
+        zmin=-1,
+        zmax=1,
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig5, use_container_width=True, config=plot_config)
 
 elif page == "Stage 4: Clustering Analysis":
     k = st.slider("Clusters",2,5,3)
