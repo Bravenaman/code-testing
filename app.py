@@ -10,7 +10,7 @@ from mlxtend.preprocessing import TransactionEncoder
 # ------------------ CONFIG ------------------
 st.set_page_config(page_title="AI Retail Intelligence", layout="wide")
 
-# ------------------ CLEAN UI ------------------
+# ------------------ UI STYLING ------------------
 st.markdown("""
 <style>
 .block-container {
@@ -45,37 +45,19 @@ st.markdown("""
     color: #94A3B8;
 }
 
-st.markdown("""
-<style>
 .insight {
     background: rgba(56,189,248,0.08);
     border-left: 4px solid #38BDF8;
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #ffffff;
+    white-space: normal;
+    word-wrap: break-word;
 }
-</style>
-""", unsafe_allow_html=True)
 
-def insight_box(text):
-    st.markdown(f"""
-    <div style="
-        background-color: #1f1f1f;
-        border-left: 5px solid #00E5FF;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 10px;
-        margin-bottom: 20px;
-        font-size: 15px;
-        line-height: 1.6;
-        color: #ffffff;
-        white-space: normal;
-        word-wrap: break-word;
-    ">
-        💡 <b>Insight:</b> {text}
-    </div>
-    """, unsafe_allow_html=True)
-    
 .section {
     font-size: 1.3rem;
     color: #E5E7EB;
@@ -109,12 +91,16 @@ def insight_box(text):
 </style>
 """, unsafe_allow_html=True)
 
+
 # ------------------ UI FUNCTIONS ------------------
+
 def header(text):
     st.markdown(f'<div class="header">{text}</div>', unsafe_allow_html=True)
 
+
 def card(text):
     st.markdown(f'<div class="card">{text}</div>', unsafe_allow_html=True)
+
 
 def kpi(label, value):
     st.markdown(f"""
@@ -124,8 +110,16 @@ def kpi(label, value):
     </div>
     """, unsafe_allow_html=True)
 
+
+# 🔥 MAIN INSIGHT BOX (USE THIS EVERYWHERE)
+def insight_box(text):
+    st.markdown(f'<div class="insight">💡 <b>Insight:</b> {text}</div>', unsafe_allow_html=True)
+
+
+# (Optional — you can remove this later if you want)
 def insight(text):
     st.markdown(f'<div class="insight">💡 {text}</div>', unsafe_allow_html=True)
+
 
 def section(text):
     st.markdown(f'<div class="section">{text}</div>', unsafe_allow_html=True)
