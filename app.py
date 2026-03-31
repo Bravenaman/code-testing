@@ -8,7 +8,7 @@ from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 
 # ------------------ CONFIG ------------------
-st.set_page_config(page_title="AI Retail Intelligence", layout="wide")
+st.set_page_config(page_title="Black Friday Retail Analytcs", layout="wide")
 
 # ------------------ UI STYLING ------------------
 st.markdown("""
