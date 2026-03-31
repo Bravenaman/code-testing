@@ -359,7 +359,11 @@ elif page == "Stage 4: Clustering Analysis":
     )
 
 st.plotly_chart(fig_elbow, use_container_width=True)
-    
+
+insight_box(
+    "The Elbow Method shows a sharp drop in WCSS until K=3, after which improvements slow down. "
+    "This indicates that 3 clusters provide an optimal balance between model simplicity and accuracy."
+)
     k = st.slider("Clusters",2,5,3)
     X = df[['Age_Code','Scaled']]
     model = KMeans(n_clusters=k,n_init=10)
