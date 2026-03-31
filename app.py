@@ -434,11 +434,16 @@ elif page == "Stage 5: Association Rules":
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
 
-        # ✅ ORIGINAL TABLE (keep this)
-        st.dataframe(rules)
-
-        # ---------------- NEW VISUALIZATION ----------------
         if not rules.empty:
+
+            # ✅ FIX: Convert frozenset → string (VERY IMPORTANT)
+            rules['antecedents'] = rules['antecedents'].apply(lambda x: ', '.join(list(x)))
+            rules['consequents'] = rules['consequents'].apply(lambda x: ', '.join(list(x)))
+
+            # ✅ ORIGINAL TABLE
+            st.dataframe(rules)
+
+            # ---------------- VISUALIZATION ----------------
             st.markdown("### 📊 Visualizing Frequent Product Combinations")
 
             fig_rules = px.scatter(
@@ -460,6 +465,9 @@ elif page == "Stage 5: Association Rules":
                 "Rules with higher lift and confidence represent strong product relationships and are ideal for "
                 "cross-selling, bundling, and recommendation strategies."
             )
+
+        else:
+            st.warning("No strong association rules found. Try lowering confidence.")
 
     else:
         st.warning("No frequent itemsets found. Try lowering support.")
