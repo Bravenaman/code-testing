@@ -413,8 +413,9 @@ elif page == "Stage 4: Clustering Analysis":
     )
 
 elif page == "Stage 5: Association Rules":
-    support = st.slider("Support",0.01,0.2,0.05)
-    confidence = st.slider("Confidence",0.1,1.0,0.5)
+
+    support = st.slider("Support", 0.01, 0.2, 0.05)
+    confidence = st.slider("Confidence", 0.1, 1.0, 0.5)
 
     transactions = []
     for _, row in df.iterrows():
@@ -432,12 +433,36 @@ elif page == "Stage 5: Association Rules":
 
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
+
+        # ✅ ORIGINAL TABLE (keep this)
         st.dataframe(rules)
-        insight_box(
-    "Association rules reveal hidden relationships between customer attributes and product categories. "
-    "Strong rules indicate frequent co-occurrence patterns, enabling retailers to design effective "
-    "cross-selling strategies, product bundling, and personalized recommendations."
-    )
+
+        # ---------------- NEW VISUALIZATION ----------------
+        if not rules.empty:
+            st.markdown("### 📊 Visualizing Frequent Product Combinations")
+
+            fig_rules = px.scatter(
+                rules,
+                x="support",
+                y="confidence",
+                size="lift",
+                color="lift",
+                hover_data=["antecedents", "consequents"],
+                template="plotly_dark",
+                title="Rule Strength: Support vs Confidence (Size = Lift)"
+            )
+
+            st.plotly_chart(fig_rules, use_container_width=True)
+
+            # ✅ Insight
+            insight_box(
+                "This visualization highlights the strength of association rules based on support, confidence, and lift. "
+                "Rules with higher lift and confidence represent strong product relationships and are ideal for "
+                "cross-selling, bundling, and recommendation strategies."
+            )
+
+    else:
+        st.warning("No frequent itemsets found. Try lowering support.")
         
 
 elif page == "Stage 6: Anomaly Detection":
