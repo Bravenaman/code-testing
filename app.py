@@ -493,7 +493,7 @@ elif page == "Stage 6: Anomaly Detection":
 
 elif page == "Stage 7: Insights & Reporting":
     st.markdown("""
-    <h1 style='text-align: center; color: #FFD700;'>
+    <h1 style='text-align: center; color: #00BFFF;'>
     Stage 7: Insights & Reporting
     </h1>
     """, unsafe_allow_html=True)
@@ -506,14 +506,12 @@ elif page == "Stage 7: Insights & Reporting":
     """, unsafe_allow_html=True)
 
     # ------------------------------
-    # AUTO-DETECT COLUMNS (FIX)
+    # FIXED COLUMN NAMES
     # ------------------------------
-    cols = df.columns
-
-    gender_col = [c for c in cols if "gender" in c.lower()][0]
-    purchase_col = [c for c in cols if "purchase" in c.lower()][0]
-    age_col = [c for c in cols if "age" in c.lower()][0]
-    category_col = [c for c in cols if "product" in c.lower()][0]
+    gender_col = "Gender"
+    purchase_col = "Purchase"
+    age_col = "Age"
+    category_col = "Category"
 
     # ------------------------------
     # VISUAL EXECUTIVE SUMMARY
@@ -522,7 +520,7 @@ elif page == "Stage 7: Insights & Reporting":
 
     col1, col2, col3 = st.columns(3)
 
-    # ---- Chart 1 ----
+    # ---- Chart 1: Age vs Spend ----
     with col1:
         age_spend = df.groupby(age_col)[purchase_col].mean().reset_index()
 
@@ -531,12 +529,13 @@ elif page == "Stage 7: Insights & Reporting":
             x=age_col,
             y=purchase_col,
             color=purchase_col,
-            title="Average Spend by Age Group"
+            title="Average Spend by Age Group",
+            template="plotly_dark"
         )
 
         st.plotly_chart(fig1, use_container_width=True)
 
-    # ---- Chart 2 ----
+    # ---- Chart 2: Product Preference by Gender ----
     with col2:
         gender_pref = df.groupby([gender_col, category_col]).size().reset_index(name="Count")
 
@@ -546,12 +545,13 @@ elif page == "Stage 7: Insights & Reporting":
             y="Count",
             color=gender_col,
             barmode="group",
-            title="Product Preference by Gender"
+            title="Product Preference by Gender",
+            template="plotly_dark"
         )
 
         st.plotly_chart(fig2, use_container_width=True)
 
-    # ---- Chart 3 ----
+    # ---- Chart 3: Anomaly Detection ----
     with col3:
         Q1 = df[purchase_col].quantile(0.25)
         Q3 = df[purchase_col].quantile(0.75)
@@ -566,17 +566,19 @@ elif page == "Stage 7: Insights & Reporting":
             anomaly_gender,
             names=gender_col,
             values="Count",
-            title="Demographic of Anomaly Spenders"
+            title="Demographic of Anomaly Spenders",
+            template="plotly_dark"
         )
 
         st.plotly_chart(fig3, use_container_width=True)
 
     # ------------------------------
-    # FINAL ANSWERS
+    # FINAL ANSWERS SECTION
     # ------------------------------
     st.markdown("---")
     st.header("🔑 Final Answers to Core Questions")
 
+    # ---- Q1 ----
     st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #00FFFF;'>
     <h3 style='color:#00FFFF;'>1. Which age group spends the most?</h3>
@@ -586,6 +588,7 @@ elif page == "Stage 7: Insights & Reporting":
     </div>
     """, unsafe_allow_html=True)
 
+    # ---- Q2 ----
     st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FF4B6E;'>
     <h3 style='color:#FF4B6E;'>2. Which products are popular with males vs. females?</h3>
@@ -596,6 +599,7 @@ elif page == "Stage 7: Insights & Reporting":
     </div>
     """, unsafe_allow_html=True)
 
+    # ---- Q3 ----
     st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FFD700;'>
     <h3 style='color:#FFD700;'>3. What type of buyers spend unusually high amounts?</h3>
