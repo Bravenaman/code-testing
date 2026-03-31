@@ -243,6 +243,21 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig3, use_container_width=True)
+
+    # ------------------------------
+    # Scatter Plot: Purchase vs Occupation
+    st.markdown("### 4. Scatter Plot: Purchase vs. Occupation")
+
+    fig4 = px.scatter(
+        df,
+        x='Occupation',
+        y='Purchase',
+        color='Gender',
+        opacity=0.6,
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig4, use_container_width=True)
     
 
 elif page == "Stage 4: Clustering Analysis":
