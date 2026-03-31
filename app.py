@@ -493,116 +493,129 @@ elif page == "Stage 6: Anomaly Detection":
 
 elif page == "Stage 7: Insights & Reporting":
    st.markdown("""
-<h1 style='text-align: center; color: #FFD700;'>
-Stage 7: Insights & Reporting
-</h1>
-""", unsafe_allow_html=True)
+    <h1 style='text-align: center; color: #FFD700;'>
+    Stage 7: Insights & Reporting
+    </h1>
+    """, unsafe_allow_html=True)
 
-st.markdown("""
-<p style='text-align: center; font-size:18px;'>
-Once analysis is done, we need to summarize findings in a way that's easy to understand.
-Insights are like telling the final story after reading the whole book — short, clear, and meaningful.
-</p>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <p style='text-align: center; font-size:18px;'>
+    Once analysis is done, we summarize findings in a clear, meaningful way.
+    This section tells the final story of the data.
+    </p>
+    """, unsafe_allow_html=True)
 
-# ------------------------------
-# VISUAL EXECUTIVE SUMMARY
-# ------------------------------
-st.subheader("📊 Visual Executive Summary")
+    # ------------------------------
+    # AUTO-DETECT COLUMNS (FIX)
+    # ------------------------------
+    cols = df.columns
 
-col1, col2, col3 = st.columns(3)
+    # Detect key columns safely
+    gender_col = [c for c in cols if "gender" in c.lower()][0]
+    purchase_col = [c for c in cols if "purchase" in c.lower()][0]
+    age_col = [c for c in cols if "age" in c.lower()][0]
+    category_col = [c for c in cols if "product" in c.lower()][0]
 
-# ---- Chart 1: Age vs Spend ----
-with col1:
-    age_spend = df.groupby("Age")["Purchase"].mean().reset_index()
+    # ------------------------------
+    # VISUAL EXECUTIVE SUMMARY
+    # ------------------------------
+    st.subheader("📊 Visual Executive Summary")
 
-    fig1 = px.bar(
-        age_spend,
-        x="Age",
-        y="Purchase",
-        color="Purchase",
-        title="Average Spend by Age Group"
-    )
+    col1, col2, col3 = st.columns(3)
 
-    st.plotly_chart(fig1, use_container_width=True)
+    # ---- Chart 1: Age vs Spend ----
+    with col1:
+        age_spend = df.groupby(age_col)[purchase_col].mean().reset_index()
 
+        fig1 = px.bar(
+            age_spend,
+            x=age_col,
+            y=purchase_col,
+            color=purchase_col,
+            title="Average Spend by Age Group"
+        )
 
-# ---- Chart 2: Product Preference by Gender ----
-with col2:
-    gender_pref = df.groupby(["Gender", "Product_Category_1"]).size().reset_index(name="Count")
-
-    fig2 = px.bar(
-        gender_pref,
-        x="Product_Category_1",
-        y="Count",
-        color="Gender",
-        barmode="group",
-        title="Product Preference by Gender"
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig1, use_container_width=True)
 
 
-# ---- Chart 3: Anomaly Demographics ----
-with col3:
-    Q1 = df["Purchase"].quantile(0.25)
-    Q3 = df["Purchase"].quantile(0.75)
-    IQR = Q3 - Q1
+    # ---- Chart 2: Product Preference by Gender ----
+    with col2:
+        gender_pref = df.groupby([gender_col, category_col]).size().reset_index(name="Count")
 
-    anomalies = df[df["Purchase"] > (Q3 + 1.5 * IQR)]
+        fig2 = px.bar(
+            gender_pref,
+            x=category_col,
+            y="Count",
+            color=gender_col,
+            barmode="group",
+            title="Product Preference by Gender"
+        )    
 
-    anomaly_gender = anomalies["Gender"].value_counts().reset_index()
-    anomaly_gender.columns = ["Gender", "Count"]
-
-    fig3 = px.pie(
-        anomaly_gender,
-        names="Gender",
-        values="Count",
-        title="Demographic of Anomaly Spenders"
-    )
-
-    st.plotly_chart(fig3, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
 
 
-# ------------------------------
-# FINAL ANSWERS SECTION
-# ------------------------------
-st.markdown("---")
-st.header("🔑 Final Answers to Core Questions")
+    # ---- Chart 3: Anomaly Detection ----
+    with col3:
+        Q1 = df[purchase_col].quantile(0.25)
+        Q3 = df[purchase_col].quantile(0.75)
+        IQR = Q3 - Q1
 
-# ---- Q1 ----
-st.markdown("""
-<div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #00FFFF;'>
-<h3 style='color:#00FFFF;'>1. Which age group spends the most?</h3>
-<p>
-The 26–35 and 36–45 age groups spend the most on average.
-They show the highest purchasing power and dominate the high-value customer segments.
-</p>
-</div>
-""", unsafe_allow_html=True)
+        anomalies = df[df[purchase_col] > (Q3 + 1.5 * IQR)]
 
+        anomaly_gender = anomalies[gender_col].value_counts().reset_index()
+        anomaly_gender.columns = [gender_col, "Count"]
 
-# ---- Q2 ----
-st.markdown("""
-<div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FF4B6E;'>
-<h3 style='color:#FF4B6E;'>2. Which products are popular with males vs. females?</h3>
-<p>
-• Males dominate purchases in Electronics and Sports categories.<br>
-• Females show stronger preference for Apparel, Beauty, and Home products.
-</p>
-</div>
-""", unsafe_allow_html=True)
+        fig3 = px.pie(
+            anomaly_gender,
+            names=gender_col,
+            values="Count",
+            title="Demographic of Anomaly Spenders"
+        )
+
+        st.plotly_chart(fig3, use_container_width=True)
 
 
-# ---- Q3 ----
-st.markdown("""
-<div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FFD700;'>
-<h3 style='color:#FFD700;'>3. What type of buyers spend unusually high amounts?</h3>
-<p>
-• Mostly Male customers.<br>
-• Primarily in the 26–45 age group.<br>
-• Often associated with higher-paying occupations.<br>
-• Represent premium or high-value customer segments.
-</p>
-</div>
-""", unsafe_allow_html=True)
+    # ------------------------------
+    # FINAL ANSWERS SECTION
+    # ------------------------------
+    st.markdown("---")
+    st.header("🔑 Final Answers to Core Questions")
+
+    # ---- Q1 ----
+    st.markdown(f"""
+    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #00FFFF;'>
+    <h3 style='color:#00FFFF;'>1. Which age group spends the most?</h3>
+    <p>
+    The age groups with the highest average spending are those with the highest values in the chart above.
+    Typically, middle-aged groups (like 26–45) dominate due to higher income levels and purchasing power.
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    # ---- Q2 ----
+    st.markdown(f"""
+    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FF4B6E;'>
+    <h3 style='color:#FF4B6E;'>2. Which products are popular with males vs. females?</h3>
+    <p>
+    The chart shows clear differences in purchasing behavior:
+    <br>• One gender dominates certain categories like Electronics/Sports.
+    <br>• The other prefers categories like Apparel, Beauty, or Home.
+    <br>This highlights strong gender-based product preferences.
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    # ---- Q3 ----
+    st.markdown(f"""
+    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FFD700;'>
+    <h3 style='color:#FFD700;'>3. What type of buyers spend unusually high amounts?</h3>
+    <p>
+    Outlier detection reveals high-value customers:
+    <br>• Concentrated in specific demographics
+    <br>• Represent premium or high-income buyers
+    <br>• Important for targeted marketing strategies
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
