@@ -45,6 +45,8 @@ st.markdown("""
     color: #94A3B8;
 }
 
+st.markdown("""
+<style>
 .insight {
     background: rgba(56,189,248,0.08);
     border-left: 4px solid #38BDF8;
@@ -52,6 +54,8 @@ st.markdown("""
     border-radius: 10px;
     margin-top: 10px;
 }
+</style>
+""", unsafe_allow_html=True)
 
 def insight_box(text):
     st.markdown(f"""
