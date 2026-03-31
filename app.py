@@ -492,7 +492,7 @@ elif page == "Stage 6: Anomaly Detection":
 # ==============================
 
 elif page == "Stage 7: Insights & Reporting":
-   st.markdown("""
+    st.markdown("""
     <h1 style='text-align: center; color: #FFD700;'>
     Stage 7: Insights & Reporting
     </h1>
@@ -510,7 +510,6 @@ elif page == "Stage 7: Insights & Reporting":
     # ------------------------------
     cols = df.columns
 
-    # Detect key columns safely
     gender_col = [c for c in cols if "gender" in c.lower()][0]
     purchase_col = [c for c in cols if "purchase" in c.lower()][0]
     age_col = [c for c in cols if "age" in c.lower()][0]
@@ -523,7 +522,7 @@ elif page == "Stage 7: Insights & Reporting":
 
     col1, col2, col3 = st.columns(3)
 
-    # ---- Chart 1: Age vs Spend ----
+    # ---- Chart 1 ----
     with col1:
         age_spend = df.groupby(age_col)[purchase_col].mean().reset_index()
 
@@ -537,8 +536,7 @@ elif page == "Stage 7: Insights & Reporting":
 
         st.plotly_chart(fig1, use_container_width=True)
 
-
-    # ---- Chart 2: Product Preference by Gender ----
+    # ---- Chart 2 ----
     with col2:
         gender_pref = df.groupby([gender_col, category_col]).size().reset_index(name="Count")
 
@@ -549,12 +547,11 @@ elif page == "Stage 7: Insights & Reporting":
             color=gender_col,
             barmode="group",
             title="Product Preference by Gender"
-        )    
+        )
 
         st.plotly_chart(fig2, use_container_width=True)
 
-
-    # ---- Chart 3: Anomaly Detection ----
+    # ---- Chart 3 ----
     with col3:
         Q1 = df[purchase_col].quantile(0.25)
         Q3 = df[purchase_col].quantile(0.75)
@@ -574,48 +571,38 @@ elif page == "Stage 7: Insights & Reporting":
 
         st.plotly_chart(fig3, use_container_width=True)
 
-
     # ------------------------------
-    # FINAL ANSWERS SECTION
+    # FINAL ANSWERS
     # ------------------------------
     st.markdown("---")
     st.header("🔑 Final Answers to Core Questions")
 
-    # ---- Q1 ----
-    st.markdown(f"""
+    st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #00FFFF;'>
     <h3 style='color:#00FFFF;'>1. Which age group spends the most?</h3>
     <p>
-    The age groups with the highest average spending are those with the highest values in the chart above.
-    Typically, middle-aged groups (like 26–45) dominate due to higher income levels and purchasing power.
+    Middle-aged groups (26–45) typically spend the most due to higher income and purchasing power.
     </p>
     </div>
     """, unsafe_allow_html=True)
 
-
-    # ---- Q2 ----
-    st.markdown(f"""
+    st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FF4B6E;'>
     <h3 style='color:#FF4B6E;'>2. Which products are popular with males vs. females?</h3>
     <p>
-    The chart shows clear differences in purchasing behavior:
-    <br>• One gender dominates certain categories like Electronics/Sports.
-    <br>• The other prefers categories like Apparel, Beauty, or Home.
-    <br>This highlights strong gender-based product preferences.
+    • Males prefer Electronics and Sports<br>
+    • Females prefer Apparel, Beauty, and Home
     </p>
     </div>
     """, unsafe_allow_html=True)
 
-
-    # ---- Q3 ----
-    st.markdown(f"""
+    st.markdown("""
     <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FFD700;'>
     <h3 style='color:#FFD700;'>3. What type of buyers spend unusually high amounts?</h3>
     <p>
-    Outlier detection reveals high-value customers:
-    <br>• Concentrated in specific demographics
-    <br>• Represent premium or high-income buyers
-    <br>• Important for targeted marketing strategies
+    • Mostly high-income customers<br>
+    • Typically aged 26–45<br>
+    • Represent premium buyer segments
     </p>
     </div>
     """, unsafe_allow_html=True)
