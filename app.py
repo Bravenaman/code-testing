@@ -147,13 +147,13 @@ df = df[
 ]
 
 page = st.sidebar.radio("📊 Navigation", [
-    "Stage 1: Scope",
-    "Stage 2: Preprocessing",
+    "Stage 1: Project Scope",
+    "Stage 2: Data Preprocessing",
     "Stage 3: EDA",
-    "Stage 4: Clustering",
-    "Stage 5: Association",
-    "Stage 6: Anomaly",
-    "Stage 7: Final"
+    "Stage 4: Clustering Analysis",
+    "Stage 5: Association Rules",
+    "Stage 6: Anomaly Detection",
+    "Stage 7: Insights & Reporting"
 ])
 
 # ------------------ HEADER ------------------
@@ -168,7 +168,7 @@ with c3:
     kpi("Transactions", len(df))
 
 # ------------------ STAGE 1 ------------------
-if page == "Stage 1: Scope":
+if page == "Stage 1: Project Scope":
     section("📋 Stage 1: Project Scope, Objectives & Tasks")
 
     col1, col2 = st.columns(2)
@@ -199,7 +199,7 @@ if page == "Stage 1: Scope":
         """, unsafe_allow_html=True)
 
 # ------------------ REST OF CODE SAME ------------------
-elif page == "Stage 2: Preprocessing":
+elif page == "Stage 2: Data Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
@@ -210,7 +210,7 @@ elif page == "Stage 3: EDA":
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
     insight(f"Highest spending group is {top_age}.")
 
-elif page == "Stage 4: Clustering":
+elif page == "Stage 4: Clustering Analysis":
     k = st.slider("Clusters",2,5,3)
     X = df[['Age_Code','Scaled']]
     model = KMeans(n_clusters=k,n_init=10)
@@ -223,7 +223,7 @@ elif page == "Stage 4: Clustering":
     st.plotly_chart(fig, use_container_width=True)
     insight("High-value segments drive most revenue.")
 
-elif page == "Stage 5: Association":
+elif page == "Stage 5: Association Rules":
     support = st.slider("Support",0.01,0.2,0.05)
     confidence = st.slider("Confidence",0.1,1.0,0.5)
 
@@ -246,7 +246,7 @@ elif page == "Stage 5: Association":
         st.dataframe(rules)
         insight("Adjust sliders to discover relationships.")
 
-elif page == "Stage 6: Anomaly":
+elif page == "Stage 6: Anomaly Detection":
     mult = st.slider("Sensitivity",1.0,3.0,1.5)
     Q1 = df['Purchase'].quantile(0.25)
     Q3 = df['Purchase'].quantile(0.75)
@@ -256,7 +256,7 @@ elif page == "Stage 6: Anomaly":
     st.plotly_chart(fig, use_container_width=True)
     insight("Higher sensitivity reduces VIP classification.")
 
-elif page == "Stage 7: Final":
+elif page == "Stage 7: Insights & Reporting":
     st.markdown("### 🧠 Decision Engine")
     if len(df) > 0:
         top_age = df.groupby('Age')['Purchase'].mean().idxmax()
