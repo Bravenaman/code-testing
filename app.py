@@ -366,46 +366,46 @@ elif page == "Stage 4: Clustering Analysis":
         "This indicates that 3 clusters provide an optimal balance between model simplicity and accuracy."
     )
 
-    # ---------------- INTERACTIVE CLUSTERING ----------------
-st.markdown("### 🎛️ Interactive Clustering & Segmentation")
+        # ---------------- INTERACTIVE CLUSTERING ----------------
+    st.markdown("### 🎛️ Interactive Clustering & Segmentation")
 
-# Slider for selecting number of clusters
-k = st.slider("Select Number of Clusters (K)", 2, 5, 3)
+    # Slider for selecting number of clusters
+    k = st.slider("Select Number of Clusters (K)", 2, 5, 3)
 
-# Features for clustering
-X = df[['Age_Code', 'Scaled']]
+    # Features for clustering
+    X = df[['Age_Code', 'Scaled']]
 
-# Apply KMeans
-model = KMeans(n_clusters=k, n_init=10, random_state=42)
-df['Cluster'] = model.fit_predict(X)
+    # Apply KMeans
+    model = KMeans(n_clusters=k, n_init=10, random_state=42)
+    df['Cluster'] = model.fit_predict(X)
 
-# Sort clusters by spending to label them meaningfully
-avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
-labels = ["Low","Mid","High","VIP","Elite"]
-mapping = {c: labels[i] for i, c in enumerate(avg.index)}
-df['Segment'] = df['Cluster'].map(mapping)
+    # Sort clusters by spending to label them meaningfully
+    avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
+    labels = ["Low","Mid","High","VIP","Elite"]
+    mapping = {c: labels[i] for i, c in enumerate(avg.index)}
+    df['Segment'] = df['Cluster'].map(mapping)
 
-# Scatter Plot
-fig = px.scatter(
-    df,
-    x="Age",
-    y="Purchase",
-    color="Segment",
-    template='plotly_dark',
-    title="Customer Segments Based on Spending Behavior"
-)
+    # Scatter Plot
+    fig = px.scatter(
+        df,
+        x="Age",
+        y="Purchase",
+        color="Segment",
+        template='plotly_dark',
+        title="Customer Segments Based on Spending Behavior"
+    )
 
-st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-# Insight
-top_segment = df.groupby('Segment')['Purchase'].mean().idxmax()
+    # Insight
+    top_segment = df.groupby('Segment')['Purchase'].mean().idxmax()
 
-insight_box(
-    f"The '{top_segment}' segment represents the highest spending customers. "
-    "These users contribute significantly to revenue and should be targeted with "
-    "premium offerings, loyalty programs, and personalized marketing strategies. "
-    "Lower segments can be nurtured through discounts and engagement campaigns to increase spending."
-)
+    insight_box(
+        f"The '{top_segment}' segment represents the highest spending customers. "
+        "These users contribute significantly to revenue and should be targeted with "
+        "premium offerings, loyalty programs, and personalized marketing strategies. "
+        "Lower segments can be nurtured through discounts and engagement campaigns to increase spending."
+    )
 
 elif page == "Stage 5: Association Rules":
     support = st.slider("Support",0.01,0.2,0.05)
