@@ -71,7 +71,7 @@ def insight_box(text):
         💡 <b>Insight:</b> {text}
     </div>
     """, unsafe_allow_html=True)
-
+    
 .section {
     font-size: 1.3rem;
     color: #E5E7EB;
