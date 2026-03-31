@@ -210,22 +210,22 @@ elif page == "Stage 3: EDA":
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
     insight(f"Highest spending group is {top_age}.")
     
-# ------------------------------
-# Most Popular Product Categories
-st.markdown("### 2. Most Popular Product Categories")
+    # ------------------------------
+    # Most Popular Product Categories
+    st.markdown("### 2. Most Popular Product Categories")
 
-cat_counts = df['Category'].value_counts().reset_index()
-cat_counts.columns = ['Category', 'Number of Purchases']
+    cat_counts = df['Category'].value_counts().reset_index()
+    cat_counts.columns = ['Category', 'Number of Purchases']
 
-fig2 = px.bar(
-    cat_counts,
-    x='Category',
-    y='Number of Purchases',
-    color='Category',
-    template='plotly_dark'
-)
+    fig2 = px.bar(
+        cat_counts,
+        x='Category',
+        y='Number of Purchases',
+        color='Category',
+        template='plotly_dark'
+    )
 
-st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
     
 
 elif page == "Stage 4: Clustering Analysis":
