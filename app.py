@@ -214,7 +214,7 @@ elif page == "Stage 3: EDA":
 # Most Popular Product Categories
 st.markdown("### 2. Most Popular Product Categories")
 
-cat_counts = df['Product_Category_1'].value_counts().reset_index()
+cat_counts = df['Category'].value_counts().reset_index()
 cat_counts.columns = ['Category', 'Number of Purchases']
 
 fig2 = px.bar(
