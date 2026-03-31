@@ -217,6 +217,12 @@ if page == "Stage 1: Project Scope":
 
 # ------------------ REST OF CODE SAME ------------------
 elif page == "Stage 2: Data Preprocessing":
+    st.markdown("""
+    <h1 style='text-align: center; color: #00BFFF;'>
+    Stage 2: Data Preprocessing
+    </h1>
+    """, unsafe_allow_html=True)
+
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
     insight_box(
@@ -226,6 +232,12 @@ elif page == "Stage 2: Data Preprocessing":
     )
 
 elif page == "Stage 3: EDA":
+    st.markdown("""
+    <h1 style='text-align: center; color: #00BFFF;'>
+    Stage 3: Exploratory Data Analysis
+    </h1>
+    """, unsafe_allow_html=True)
+
     section("Purchase Distribution")
     fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
@@ -325,6 +337,12 @@ elif page == "Stage 3: EDA":
     
 
 elif page == "Stage 4: Clustering Analysis":
+    st.markdown("""
+    <h1 style='text-align: center; color: #00BFFF;'>
+    Stage 4: Clustering Analysis
+    </h1>
+    """, unsafe_allow_html=True)
+
 
     st.markdown("### 📉 Elbow Method (Optimal Clusters)")
 
@@ -413,6 +431,11 @@ elif page == "Stage 4: Clustering Analysis":
     )
 
 elif page == "Stage 5: Association Rules":
+    st.markdown("""
+    <h1 style='text-align: center; color: #00BFFF;'>
+    Stage 5: Association Rules
+    </h1>
+    """, unsafe_allow_html=True)
 
     support = st.slider("Support", 0.01, 0.2, 0.05)
     confidence = st.slider("Confidence", 0.1, 1.0, 0.5)
@@ -474,6 +497,12 @@ elif page == "Stage 5: Association Rules":
         
 
 elif page == "Stage 6: Anomaly Detection":
+    st.markdown("""
+    <h1 style='text-align: center; color: #00BFFF;'>
+    Stage 6: Anomaly Detection
+    </h1>
+    """, unsafe_allow_html=True)
+    
     mult = st.slider("Sensitivity",1.0,3.0,1.5)
     Q1 = df['Purchase'].quantile(0.25)
     Q3 = df['Purchase'].quantile(0.75)
