@@ -520,7 +520,7 @@ elif page == "Stage 7: Insights & Reporting":
 
     col1, col2, col3 = st.columns(3)
 
-    # ---- Chart 1: Age vs Spend ----
+    # ---- Chart 1 ----
     with col1:
         age_spend = df.groupby(age_col)[purchase_col].mean().reset_index()
 
@@ -535,7 +535,7 @@ elif page == "Stage 7: Insights & Reporting":
 
         st.plotly_chart(fig1, use_container_width=True)
 
-    # ---- Chart 2: Product Preference by Gender ----
+    # ---- Chart 2 ----
     with col2:
         gender_pref = df.groupby([gender_col, category_col]).size().reset_index(name="Count")
 
@@ -551,7 +551,7 @@ elif page == "Stage 7: Insights & Reporting":
 
         st.plotly_chart(fig2, use_container_width=True)
 
-    # ---- Chart 3: Anomaly Detection ----
+    # ---- Chart 3 ----
     with col3:
         Q1 = df[purchase_col].quantile(0.25)
         Q3 = df[purchase_col].quantile(0.75)
@@ -573,14 +573,18 @@ elif page == "Stage 7: Insights & Reporting":
         st.plotly_chart(fig3, use_container_width=True)
 
     # ------------------------------
-    # FINAL ANSWERS SECTION
+    # FINAL ANSWERS
     # ------------------------------
     st.markdown("---")
     st.header("🔑 Final Answers to Core Questions")
 
     # ---- Q1 ----
     st.markdown("""
-    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #00FFFF;'>
+    <div style='background-color:#1e1e1e;
+                padding:20px;
+                border-radius:10px;
+                border-left:5px solid #00FFFF;
+                margin-bottom:25px;'>
     <h3 style='color:#00FFFF;'>1. Which age group spends the most?</h3>
     <p>
     Middle-aged groups (26–45) typically spend the most due to higher income and purchasing power.
@@ -590,7 +594,11 @@ elif page == "Stage 7: Insights & Reporting":
 
     # ---- Q2 ----
     st.markdown("""
-    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FF4B6E;'>
+    <div style='background-color:#1e1e1e;
+                padding:20px;
+                border-radius:10px;
+                border-left:5px solid #FF4B6E;
+                margin-bottom:25px;'>
     <h3 style='color:#FF4B6E;'>2. Which products are popular with males vs. females?</h3>
     <p>
     • Males prefer Electronics and Sports<br>
@@ -601,7 +609,11 @@ elif page == "Stage 7: Insights & Reporting":
 
     # ---- Q3 ----
     st.markdown("""
-    <div style='background-color:#1e1e1e;padding:20px;border-radius:10px;border-left:5px solid #FFD700;'>
+    <div style='background-color:#1e1e1e;
+                padding:20px;
+                border-radius:10px;
+                border-left:5px solid #FFD700;
+                margin-bottom:25px;'>
     <h3 style='color:#FFD700;'>3. What type of buyers spend unusually high amounts?</h3>
     <p>
     • Mostly high-income customers<br>
