@@ -349,7 +349,7 @@ elif page == "Stage 4: Clustering Analysis":
         title="Elbow Method"
     )
 
-    # Optional: Highlight K=3 (like your image)
+    # Highlight K=3
     fig_elbow.add_annotation(
         x=3,
         y=wcss[2],
@@ -358,22 +358,29 @@ elif page == "Stage 4: Clustering Analysis":
         arrowhead=2
     )
 
-st.plotly_chart(fig_elbow, use_container_width=True)
+    # ✅ FIXED INDENTATION (inside block)
+    st.plotly_chart(fig_elbow, use_container_width=True)
 
-insight_box(
-    "The Elbow Method shows a sharp drop in WCSS until K=3, after which improvements slow down. "
-    "This indicates that 3 clusters provide an optimal balance between model simplicity and accuracy."
-)
-    k = st.slider("Clusters",2,5,3)
-    X = df[['Age_Code','Scaled']]
-    model = KMeans(n_clusters=k,n_init=10)
+    insight_box(
+        "The Elbow Method shows a sharp drop in WCSS until K=3, after which improvements slow down. "
+        "This indicates that 3 clusters provide an optimal balance between model simplicity and accuracy."
+    )
+
+    # ---------------- CLUSTERING ----------------
+    k = st.slider("Clusters", 2, 5, 3)
+
+    X = df[['Age_Code', 'Scaled']]
+    model = KMeans(n_clusters=k, n_init=10)
     df['Cluster'] = model.fit_predict(X)
+
     avg = df.groupby('Cluster')['Purchase'].mean().sort_values()
     labels = ["Low","Mid","High","VIP","Elite"]
-    mapping = {c:labels[i] for i,c in enumerate(avg.index)}
+    mapping = {c: labels[i] for i, c in enumerate(avg.index)}
     df['Segment'] = df['Cluster'].map(mapping)
+
     fig = px.scatter(df, x="Age", y="Purchase", color="Segment", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
+
     insight("High-value segments drive most revenue.")
 
 
