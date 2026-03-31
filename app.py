@@ -226,6 +226,23 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig2, use_container_width=True)
+
+    # ------------------------------
+    # Average Purchase per Category
+    st.markdown("### 3. Average Purchase per Category")
+
+    cat_avg = df.groupby('Category')['Purchase'].mean().reset_index()
+
+    fig3 = px.bar(
+        cat_avg,
+        x='Category',
+        y='Purchase',
+        color='Purchase',
+        color_continuous_scale='viridis',
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig3, use_container_width=True)
     
 
 elif page == "Stage 4: Clustering Analysis":
