@@ -174,7 +174,7 @@ page = st.sidebar.radio("📊 Navigation", [
 ])
 
 # ------------------ HEADER ------------------
-header("🛍️ AI Retail Intelligence System")
+header("🛍️ Black Friday Retail Analytics")
 
 c1, c2, c3 = st.columns(3)
 with c1:
