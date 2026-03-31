@@ -320,6 +320,46 @@ elif page == "Stage 3: EDA":
     
 
 elif page == "Stage 4: Clustering Analysis":
+
+    st.markdown("### 📉 Elbow Method (Optimal Clusters)")
+
+    X = df[['Age_Code', 'Scaled']]
+
+    wcss = []
+    K_range = range(1, 8)
+
+    for k_val in K_range:
+        kmeans = KMeans(n_clusters=k_val, n_init=10, random_state=42)
+        kmeans.fit(X)
+        wcss.append(kmeans.inertia_)
+
+    # Create DataFrame for plotting
+    elbow_df = pd.DataFrame({
+        "K": list(K_range),
+        "WCSS": wcss
+    })
+
+    # Plot
+    fig_elbow = px.line(
+        elbow_df,
+        x="K",
+        y="WCSS",
+        markers=True,
+        template='plotly_dark',
+        title="Elbow Method"
+    )
+
+    # Optional: Highlight K=3 (like your image)
+    fig_elbow.add_annotation(
+        x=3,
+        y=wcss[2],
+        text="Elbow Point (k=3)",
+        showarrow=True,
+        arrowhead=2
+    )
+
+st.plotly_chart(fig_elbow, use_container_width=True)
+    
     k = st.slider("Clusters",2,5,3)
     X = df[['Age_Code','Scaled']]
     model = KMeans(n_clusters=k,n_init=10)
@@ -331,6 +371,7 @@ elif page == "Stage 4: Clustering Analysis":
     fig = px.scatter(df, x="Age", y="Purchase", color="Segment", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
     insight("High-value segments drive most revenue.")
+
 
 elif page == "Stage 5: Association Rules":
     support = st.slider("Support",0.01,0.2,0.05)
