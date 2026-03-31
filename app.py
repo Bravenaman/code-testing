@@ -203,9 +203,13 @@ elif page == "Stage 2: Data Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
 
-elif page == "3️⃣ Stage 3: EDA":
-    st.markdown('<div class="main-header">Stage 3: Exploratory Data Analysis</div>', unsafe_allow_html=True)
-
+elif page == "Stage 3: EDA":
+    section("Purchase Distribution")
+    fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
+    st.plotly_chart(fig, use_container_width=True)
+    top_age = df.groupby('Age')['Purchase'].mean().idxmax()
+    insight(f"Highest spending group is {top_age}.")
+    
     # ------------------------------
     # 2. Most Popular Product Categories
     st.markdown("### 2. Most Popular Product Categories")
