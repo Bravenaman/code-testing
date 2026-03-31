@@ -219,6 +219,11 @@ if page == "Stage 1: Project Scope":
 elif page == "Stage 2: Data Preprocessing":
     card("Data cleaned, encoded, and scaled.")
     st.dataframe(df.head())
+    insight_box(
+    "The dataset has been cleaned, encoded, and standardized to ensure consistency and accuracy in analysis. "
+    "Scaling purchase values helps improve clustering performance, while encoding categorical variables "
+    "enables machine learning models to interpret customer demographics effectively."
+    )
 
 elif page == "Stage 3: EDA":
     section("Purchase Distribution")
@@ -428,7 +433,12 @@ elif page == "Stage 5: Association Rules":
     if not freq.empty:
         rules = association_rules(freq, metric="confidence", min_threshold=confidence)
         st.dataframe(rules)
-        insight("Adjust sliders to discover relationships.")
+        insight_box(
+    "Association rules reveal hidden relationships between customer attributes and product categories. "
+    "Strong rules indicate frequent co-occurrence patterns, enabling retailers to design effective "
+    "cross-selling strategies, product bundling, and personalized recommendations."
+    )
+        
 
 elif page == "Stage 6: Anomaly Detection":
     mult = st.slider("Sensitivity",1.0,3.0,1.5)
@@ -438,7 +448,11 @@ elif page == "Stage 6: Anomaly Detection":
     df['Type'] = np.where(df['Purchase']>upper,"VIP","Normal")
     fig = px.histogram(df, x="Purchase", color="Type", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
-    insight("Higher sensitivity reduces VIP classification.")
+    insight_box(
+    "Anomaly detection highlights high-value customers whose spending significantly exceeds the norm. "
+    "These 'VIP' customers contribute disproportionately to revenue and should be prioritized for "
+    "exclusive deals, premium services, and retention strategies."
+    )
 
 elif page == "Stage 7: Insights & Reporting":
     st.markdown("### 🧠 Decision Engine")
