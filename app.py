@@ -53,6 +53,25 @@ st.markdown("""
     margin-top: 10px;
 }
 
+def insight_box(text):
+    st.markdown(f"""
+    <div style="
+        background-color: #1f1f1f;
+        border-left: 5px solid #00E5FF;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #ffffff;
+        white-space: normal;
+        word-wrap: break-word;
+    ">
+        💡 <b>Insight:</b> {text}
+    </div>
+    """, unsafe_allow_html=True)
+
 .section {
     font-size: 1.3rem;
     color: #E5E7EB;
@@ -208,7 +227,10 @@ elif page == "Stage 3: EDA":
     fig = px.box(df, x="Age", y="Purchase", color="Gender", template='plotly_dark')
     st.plotly_chart(fig, use_container_width=True)
     top_age = df.groupby('Age')['Purchase'].mean().idxmax()
-    insight(f"Highest spending group is {top_age}.")
+    insight_box(
+    "Customers aged 26–45 show the highest spending range and median purchases. "
+    "Male customers also display wider variability, indicating more high-value transactions."
+    )
     
     # ------------------------------
     # Most Popular Product Categories
@@ -226,6 +248,10 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig2, use_container_width=True)
+    insight_box(
+    "Certain product categories dominate purchase frequency, indicating strong demand trends. "
+    "Retailers should prioritize inventory and marketing efforts toward these high-volume categories."
+    )
 
     # ------------------------------
     # Average Purchase per Category
@@ -243,6 +269,10 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig3, use_container_width=True)
+    insight_box(
+    "Some categories generate higher average transaction values despite lower purchase counts. "
+    "These categories represent premium segments and offer strong revenue potential per sale."
+    )
 
     # ------------------------------
     # Scatter Plot: Purchase vs Occupation
@@ -258,6 +288,10 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig4, use_container_width=True)
+    insight_box(
+    "Spending patterns vary across occupation groups, with certain occupations showing consistently higher purchases. "
+    "This suggests income-level influence on spending behavior and potential for targeted marketing."
+    )
 
     # ------------------------------
     # Correlation Heatmap for Key Features
@@ -281,6 +315,10 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig5, use_container_width=True)
+    insight_box(
+    "A positive correlation exists between age and purchase amount, indicating increased spending with age. "
+    "Other variables show weaker relationships, suggesting independent influence on purchasing behavior."
+    )
     
 
 elif page == "Stage 4: Clustering Analysis":
