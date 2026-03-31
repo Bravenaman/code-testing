@@ -206,13 +206,6 @@ elif page == "Stage 2: Data Preprocessing":
 elif page == "3️⃣ Stage 3: EDA":
     st.markdown('<div class="main-header">Stage 3: Exploratory Data Analysis</div>', unsafe_allow_html=True)
 
-    # Common Plot Config (prevents zoom/shrink issues)
-    plot_config = {
-        "scrollZoom": False,
-        "displaylogo": False,
-        "modeBarButtonsToRemove": ["zoom", "pan", "select", "lasso2d", "autoScale", "resetScale"]
-    }
-
     # ------------------------------
     # 2. Most Popular Product Categories
     st.markdown("### 2. Most Popular Product Categories")
@@ -228,7 +221,7 @@ elif page == "3️⃣ Stage 3: EDA":
         template='plotly_dark'
     )
 
-    st.plotly_chart(fig2, use_container_width=True, config=plot_config)
+    st.plotly_chart(fig2, use_container_width=True)
 
     # ------------------------------
     # 3. Average Purchase per Category
@@ -245,7 +238,7 @@ elif page == "3️⃣ Stage 3: EDA":
         template='plotly_dark'
     )
 
-    st.plotly_chart(fig3, use_container_width=True, config=plot_config)
+    st.plotly_chart(fig3, use_container_width=True)
 
     # ------------------------------
     # 4. Scatter Plot: Purchase vs. Occupation
@@ -257,11 +250,10 @@ elif page == "3️⃣ Stage 3: EDA":
         y='Purchase',
         color='Gender',
         opacity=0.6,
-        color_discrete_map={'Male': '#00E5FF', 'Female': '#FF4B8B'},
         template='plotly_dark'
     )
 
-    st.plotly_chart(fig4, use_container_width=True, config=plot_config)
+    st.plotly_chart(fig4, use_container_width=True)
 
     # ------------------------------
     # 5. Correlation Heatmap for Key Features
@@ -279,7 +271,7 @@ elif page == "3️⃣ Stage 3: EDA":
         template='plotly_dark'
     )
 
-    st.plotly_chart(fig5, use_container_width=True, config=plot_config)
+    st.plotly_chart(fig5, use_container_width=True)
 
 elif page == "Stage 4: Clustering Analysis":
     k = st.slider("Clusters",2,5,3)
