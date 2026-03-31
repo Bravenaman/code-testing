@@ -258,6 +258,29 @@ elif page == "Stage 3: EDA":
     )
 
     st.plotly_chart(fig4, use_container_width=True)
+
+    # ------------------------------
+    # Correlation Heatmap for Key Features
+    st.markdown("### 5. Correlation Heatmap for Key Features")
+
+    # Select only numeric columns that exist in your dataset
+    corr_cols = ['Age_Code', 'Gender_Code', 'Occupation', 'Marital_Status', 'Purchase']
+
+    # Make sure only existing columns are used
+    corr_cols = [col for col in corr_cols if col in df.columns]
+
+    corr_matrix = df[corr_cols].corr()
+
+    fig5 = px.imshow(
+        corr_matrix,
+        text_auto=True,
+        color_continuous_scale='RdBu_r',
+        zmin=-1,
+        zmax=1,
+        template='plotly_dark'
+    )
+
+    st.plotly_chart(fig5, use_container_width=True)
     
 
 elif page == "Stage 4: Clustering Analysis":
